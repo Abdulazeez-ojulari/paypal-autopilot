@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PaypalOrder {
+  id              String   @id @default(cuid())
+  paypalOrderId   String   @unique
+  status          String
+  currencyCode    String?
+  amount          Decimal? @db.Decimal(18, 2)
+  approvalUrl     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  captures        PaypalCapture[]
+}
+
+model PaypalCapture {
+  id              String   @id @default(cuid())
+  paypalCaptureId String   @unique
+  paypalOrderId   String
+  status          String
+  currencyCode    String?
+  amount          Decimal? @db.Decimal(18, 2)
+  createdAt       DateTime @default(now())
+  order           PaypalOrder @relation(fields: [paypalOrderId], references: [paypalOrderId])
+
+  @@index([paypalOrderId])
+}
+
+model PaypalWebhookEvent {
+  id              String   @id @default(cuid())
+  eventId         String   @unique
+  eventType       String
+  resourceType    String?
+  resourceId      String?
+  summary         String?
+  processed       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  processedAt     DateTime?
+
+  @@index([eventType])
+  @@index([resourceId])
+}
+
+model PaypalPaymentEvent {
+  id              String   @id @default(cuid())
+  paypalOrderId   String?
+  paypalCaptureId String?
+  source          String
+  eventType       String
+  previousStatus  String?
+  newStatus       String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@index([paypalOrderId])
+  @@index([paypalCaptureId])
+  @@index([eventType])
+  @@index([createdAt])
+}

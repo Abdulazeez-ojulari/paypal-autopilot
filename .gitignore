@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Next.js
+.next/
+out/
+
+# NestJS
+dist/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Prisma
+*.db
+*.db-journal
+
+# Coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
