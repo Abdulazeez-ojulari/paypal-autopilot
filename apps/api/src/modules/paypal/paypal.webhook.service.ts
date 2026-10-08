@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { PaypalClient } from './paypal.client';
 import { PaypalWebhookEvent, PaypalWebhookResource } from './paypal.webhook.types';
+import { PaypalPaymentEventService } from './paypal.payment-event.service';
 
 @Injectable()
 export class PaypalWebhookService {
@@ -10,6 +11,7 @@ export class PaypalWebhookService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly paypalClient: PaypalClient,
+        private readonly paymentEventService: PaypalPaymentEventService,
     ) {}
 
     async handleWebhook(
@@ -120,13 +122,12 @@ export class PaypalWebhookService {
 
     private async handleCaptureStatus(
         resource: PaypalWebhookResource,
-        status: string
+        status: string,
     ) {
         const captureId = resource.id;
 
         if (!captureId) {
             this.logger.warn('PayPal webhook has no capture ID.');
-
             return;
         }
 
@@ -134,38 +135,68 @@ export class PaypalWebhookService {
 
         if (!orderId) {
             this.logger.warn(`No order ID found for capture ${captureId}.`);
-
             return;
         }
 
         const amount = resource.amount?.value ?? null;
         const currencyCode = resource.amount?.currency_code ?? null;
 
-        await this.prisma.paypalOrder.updateMany({
-            where: {
-                paypalOrderId: orderId,
-            },
-            data: {
-                status,
-            },
-        });
+        const existingOrder = await this.prisma.paypalOrder.findUnique({
+                where: {
+                    paypalOrderId: orderId,
+                },
+            });
 
-        await this.prisma.paypalCapture.upsert({
-            where: {
-                paypalCaptureId: captureId,
+        const previousStatus = existingOrder?.status ?? null;
+
+        await this.prisma.$transaction(
+            async (tx) => {
+                await tx.paypalOrder.updateMany({
+                    where: {
+                        paypalOrderId: orderId,
+                    },
+                    data: {
+                        status,
+                    },
+                });
+
+                await tx.paypalCapture.upsert({
+                    where: {
+                        paypalCaptureId: captureId,
+                    },
+
+                    update: {
+                        status,
+                        currencyCode,
+                        amount,
+                    },
+
+                    create: {
+                        paypalCaptureId: captureId,
+                        paypalOrderId: orderId,
+                        status,
+                        currencyCode,
+                        amount,
+                    },
+                });
+
+                await tx.paypalPaymentEvent.create({
+                    data: {
+                        paypalOrderId: orderId,
+                        paypalCaptureId: captureId,
+                        source: 'PAYPAL_WEBHOOK',
+                        eventType: `PAYMENT.CAPTURE.${status}`,
+                        previousStatus,
+                        newStatus: status,
+                        metadata: {
+                            amount,
+                            currencyCode,
+                        },
+                    },
+                });
             },
-            update: {
-                status,
-                currencyCode,
-                amount,
-            },
-            create: {
-                paypalCaptureId: captureId,
-                paypalOrderId: orderId,
-                status,
-                currencyCode,
-                amount,
-            }
-        });
+        );
+
+        this.logger.log( `Payment ${captureId}: ${previousStatus} -> ${status}`);
     }
 }

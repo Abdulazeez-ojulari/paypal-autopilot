@@ -63,15 +63,65 @@ export class PaypalService {
             });
         }
 
-        await this.prisma.paypalOrder.update({
-            where: {
-                paypalOrderId: order.id,
-            },
+        const existingOrder = await this.prisma.paypalOrder.findUnique({
+                where: {
+                    paypalOrderId: orderId,
+                },
+            });
 
-            data: {
-                status: order.status,
-            },
-        });
+        const previousStatus = existingOrder?.status ?? null;
+
+        if (capture) {
+            await this.prisma.$transaction(
+                async (tx) => {
+
+                    await tx.paypalOrder.updateMany({
+                        where: {
+                            paypalOrderId: order.id,
+                        },
+
+                        data: {
+                            status: order.status,
+                        },
+                    });
+
+                    await tx.paypalCapture.upsert({
+                        where: {
+                            paypalCaptureId: capture.id,
+                        },
+
+                        create: {
+                            paypalCaptureId: capture.id,
+                            paypalOrderId: order.id,
+                            status: capture.status,
+                            currencyCode: capture.amount?.currency_code,
+                            amount: capture.amount?.value,
+                        },
+
+                        update: {
+                            status: capture.status,
+                            currencyCode: capture.amount?.currency_code,
+                            amount: capture.amount?.value,
+                        },
+                    });
+
+                    await tx.paypalPaymentEvent.create({
+                        data: {
+                            paypalOrderId: orderId,
+                            paypalCaptureId: capture.id,
+                            source: 'PAYPAL_API',
+                            eventType: `PAYMENT.CAPTURE`,
+                            previousStatus,
+                            newStatus: capture.status,
+                            metadata: {
+                                amount: capture.amount?.value,
+                                currencyCode: capture.amount?.currency_code,
+                            },
+                        },
+                    });
+                },
+            );
+        }
 
         return {
             orderId: order.id,
