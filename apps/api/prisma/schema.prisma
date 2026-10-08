@@ -68,3 +68,90 @@ model PaypalPaymentEvent {
   @@index([eventType])
   @@index([createdAt])
 }
+
+model Business {
+  id          String     @id @default(cuid())
+  name        String
+  currency    String     @default("USD")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  customers   Customer[]
+  invoices    Invoice[]
+}
+
+model Customer {
+  id          String     @id @default(cuid())
+  businessId  String
+  name        String
+  email       String
+  riskLevel   String     @default("MEDIUM")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  business    Business   @relation(fields: [businessId], references: [id])
+
+  invoices    Invoice[]
+
+  @@index([businessId])
+  @@index([email])
+}
+
+model Invoice {
+  id                String     @id @default(cuid())
+  businessId        String
+  customerId        String
+
+  invoiceNumber     String     @unique
+  amount            Decimal    @db.Decimal(18, 2)
+  currencyCode      String
+  status            String
+
+  issuedAt          DateTime
+  dueAt             DateTime
+  paidAt            DateTime?
+
+  reminderCount     Int        @default(0)
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  business          Business   @relation(fields: [businessId], references: [id])
+
+  customer          Customer   @relation(fields: [customerId], references: [id])
+
+  opportunities     RevenueOpportunity[]
+
+  @@index([businessId])
+  @@index([customerId])
+  @@index([status])
+  @@index([dueAt])
+}
+
+model RevenueOpportunity {
+  id                String    @id @default(cuid())
+
+  invoiceId         String
+
+  type              String
+  priority          String
+  reason            String
+
+  outstandingAmount Decimal   @db.Decimal(18, 2)
+  estimatedRecovery Decimal   @db.Decimal(18, 2)
+  confidence        Decimal   @db.Decimal(5, 2)
+
+  recommendedAction String
+
+  status            String    @default("OPEN")
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  invoice           Invoice   @relation(fields: [invoiceId], references: [id])
+
+  @@unique([invoiceId, type])
+  @@index([invoiceId])
+  @@index([status])
+  @@index([priority])
+}

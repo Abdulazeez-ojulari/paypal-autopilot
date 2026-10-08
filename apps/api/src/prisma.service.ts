@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { INestApplication, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { LogDefinition, LogLevel, TransactionIsolationLevel } from 'generated/prisma/internal/prismaNamespace';
 import { Pool } from 'pg';
@@ -20,7 +21,7 @@ export class PrismaService
     private readonly logger = new Logger(PrismaService.name);
 
     constructor() {
-        // console.log(process.env.DATABASE_URL, "aadsd")
+        console.log(process.env.DATABASE_URL, "aadsd")
         const pool = new Pool({ connectionString: process.env.DATABASE_URL });
         // 2. Wrap it with the Prisma adapter
         const adapter = new PrismaPg(pool);
