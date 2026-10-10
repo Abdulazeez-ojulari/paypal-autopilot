@@ -5,6 +5,8 @@ import { AiService } from './ai.service';
 import { AiProviderFactory } from './providers/ai-provider.factory';
 import { OllamaProvider } from './providers/ollama.provider';
 import { OpenAiProvider } from './providers/openai.provider';
+import { AiRunService } from './ai-run.service';
+import { PolicyEngineService } from './policy-engine.service';
 
 @Module({
     imports: [
@@ -20,10 +22,13 @@ import { OpenAiProvider } from './providers/openai.provider';
         AiProviderFactory,
         OpenAiProvider,
         OllamaProvider,
+        AiRunService,
+        PolicyEngineService,
     ],
 
     exports: [
         AiService,
+        AiRunService,
     ],
 })
 export class AiModule {}

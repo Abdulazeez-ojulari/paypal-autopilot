@@ -78,6 +78,7 @@ model Business {
 
   customers   Customer[]
   invoices    Invoice[]
+  aiRuns AiRun[]
 }
 
 model Customer {
@@ -154,4 +155,42 @@ model RevenueOpportunity {
   @@index([invoiceId])
   @@index([status])
   @@index([priority])
+}
+
+model AiRun {
+  id                String        @id @default(cuid())
+  businessId        String
+  provider          String
+  model             String
+  status            String        @default("COMPLETED")
+  invoiceCount      Int
+  totalOutstanding  Decimal       @db.Decimal(18, 2)
+  estimatedRecovery Decimal       @db.Decimal(18, 2)
+  summary           String
+  createdAt         DateTime      @default(now())
+
+  business          Business      @relation(fields: [businessId], references: [id])
+  decisions         AiDecision[]
+
+  @@index([businessId, createdAt])
+  @@index([status])
+}
+
+model AiDecision {
+  id                String   @id @default(cuid())
+  aiRunId            String
+  invoiceId          String
+  decision           String
+  reason             String
+  estimatedRecovery  Decimal  @db.Decimal(18, 2)
+  requiresApproval   Boolean
+  policyStatus       String
+  policyReason       String
+  createdAt          DateTime @default(now())
+
+  run                AiRun    @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+
+  @@unique([aiRunId, invoiceId])
+  @@index([invoiceId])
+  @@index([policyStatus])
 }
