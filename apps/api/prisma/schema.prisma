@@ -80,6 +80,7 @@ model Business {
   invoices    Invoice[]
   aiRuns AiRun[]
   memberships BusinessMembership[]
+  humanApprovals HumanApproval[]
 }
 
 model Customer {
@@ -189,6 +190,8 @@ model AiDecision {
   policyReason       String
   createdAt          DateTime @default(now())
 
+  approval HumanApproval?
+
   run                AiRun    @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
 
   @@unique([aiRunId, invoiceId])
@@ -204,6 +207,8 @@ model User {
   updatedAt    DateTime             @updatedAt
 
   memberships  BusinessMembership[]
+
+  decidedApprovals HumanApproval[] @relation("ApprovalDecisionMaker")
 }
 
 model BusinessMembership {
@@ -218,4 +223,30 @@ model BusinessMembership {
 
   @@unique([userId, businessId])
   @@index([businessId, role])
+}
+
+model HumanApproval {
+  id                 String   @id @default(cuid())
+  businessId         String
+  decisionId         String   @unique
+
+  status             String   @default("PENDING")
+  decidedByUserId    String?
+  decidedAt          DateTime?
+  rejectionReason    String?
+
+  executionStatus    String   @default("NOT_STARTED")
+  executionAttemptKey String? @unique
+  executionResult    Json?
+  executedAt         DateTime?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  business           Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  decision           AiDecision  @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  decidedBy          User?       @relation("ApprovalDecisionMaker", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, status, createdAt])
+  @@index([businessId, executionStatus])
 }
