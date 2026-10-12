@@ -5,6 +5,7 @@ import { PaypalModule } from './modules/paypal/paypal.module';
 import { PrismaModule } from './prisma.module';
 import { RevenueModule } from './modules/revenue/revenue.module';
 import { AiModule } from './modules/ai/ai.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AiModule } from './modules/ai/ai.module';
     PaypalModule,
     RevenueModule,
     AiModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

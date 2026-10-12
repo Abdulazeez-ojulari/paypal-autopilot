@@ -2,7 +2,11 @@ import { Controller, Get, NotFoundException, Param, Post } from '@nestjs/common'
 import { RevenueOpportunityService } from '../revenue/revenue-opportunity.service';
 import { AiService } from './ai.service';
 import { AiRunService } from './ai-run.service';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BusinessMembershipGuard } from '../auth/guards/business-membership.guard';
 
+@UseGuards(JwtAuthGuard, BusinessMembershipGuard)
 @Controller('ai')
 export class AiController {
     constructor(

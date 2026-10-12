@@ -79,6 +79,7 @@ model Business {
   customers   Customer[]
   invoices    Invoice[]
   aiRuns AiRun[]
+  memberships BusinessMembership[]
 }
 
 model Customer {
@@ -193,4 +194,28 @@ model AiDecision {
   @@unique([aiRunId, invoiceId])
   @@index([invoiceId])
   @@index([policyStatus])
+}
+
+model User {
+  id           String               @id @default(cuid())
+  email        String               @unique
+  passwordHash String
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  memberships  BusinessMembership[]
+}
+
+model BusinessMembership {
+  id         String   @id @default(cuid())
+  userId     String
+  businessId String
+  role       String   @default("MEMBER")
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+  @@index([businessId, role])
 }
