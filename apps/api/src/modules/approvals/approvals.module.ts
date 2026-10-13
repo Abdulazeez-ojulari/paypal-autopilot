@@ -5,6 +5,7 @@ import { ApprovalsService } from './approvals.service';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BusinessMembershipGuard } from '../auth/guards/business-membership.guard';
+import { ExecutionService } from './execution.service';
 
 @Module({
     imports: [
@@ -14,6 +15,7 @@ import { BusinessMembershipGuard } from '../auth/guards/business-membership.guar
     controllers: [ApprovalsController],
     providers: [
         ApprovalsService,
+        ExecutionService,
         JwtAuthGuard,
         BusinessMembershipGuard,
     ],

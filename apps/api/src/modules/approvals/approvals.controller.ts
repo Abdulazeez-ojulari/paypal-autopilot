@@ -3,11 +3,15 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BusinessMembershipGuard } from '../auth/guards/business-membership.guard';
 import { ApprovalsService } from './approvals.service';
 import { RejectApprovalDto } from './dto/reject-approval.dto';
+import { ExecutionService } from './execution.service';
 
 @Controller('approvals/businesses/:businessId')
 @UseGuards(JwtAuthGuard, BusinessMembershipGuard)
 export class ApprovalsController {
-    constructor(private readonly approvalsService: ApprovalsService) {}
+    constructor(
+        private readonly approvalsService: ApprovalsService,
+        private readonly executionService: ExecutionService,
+    ) {}
 
     @Post('initialize')
     initialize(
@@ -42,5 +46,18 @@ export class ApprovalsController {
         @Body() dto: RejectApprovalDto,
     ) {
         return this.approvalsService.reject(req.user.sub, businessId, approvalId, dto);
+    }
+
+    @Get(':approvalId/execution-check')
+    checkExecution(
+        @Req() req: any,
+        @Param('businessId') businessId: string,
+        @Param('approvalId') approvalId: string,
+    ) {
+        return this.executionService.checkEligibility(
+            req.user.sub,
+            businessId,
+            approvalId,
+        );
     }
 }
