@@ -60,4 +60,17 @@ export class ApprovalsController {
             approvalId,
         );
     }
+
+    @Post(':approvalId/execute')
+    execute(
+        @Req() req: any,
+        @Param('businessId') businessId: string,
+        @Param('approvalId') approvalId: string,
+    ) {
+        return this.executionService.executeApproved(
+            req.user.sub,
+            businessId,
+            approvalId,
+        );
+    }
 }

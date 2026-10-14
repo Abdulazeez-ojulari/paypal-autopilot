@@ -33,7 +33,7 @@ export class OllamaProvider implements AiProvider {
         revenueContext: unknown,
     ): Promise<RevenueAgentResponse> {
         try {
-            console.log(buildRevenueUserPrompt(revenueContext))
+            
             const response = await fetch(
                 `${this.baseUrl}/api/chat`,
                 {
@@ -72,7 +72,7 @@ export class OllamaProvider implements AiProvider {
             // console.log(await response.json())
 
             const data = (await response.json()) as OllamaChatResponse;
-            console.log(data)
+            // console.log(data)
             const content = data.message?.content;
 
             if (!content) {
