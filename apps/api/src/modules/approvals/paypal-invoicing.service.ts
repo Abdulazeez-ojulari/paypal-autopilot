@@ -38,4 +38,22 @@ export class PaypalInvoicingService {
             attemptKey
         )
     }
+
+    
+    async getInvoice(paypalInvoiceId: string): Promise<{
+        id: string;
+        status: string;
+        detail?: {
+            reference?: string;
+            currency_code?: string;
+        };
+        primary_recipients?: Array<{
+            billing_info?: {
+            email_address?: string;
+            };
+        }>;
+    }> {
+        return this.paypalClient.getInvoice(paypalInvoiceId);
+    }
+
 }

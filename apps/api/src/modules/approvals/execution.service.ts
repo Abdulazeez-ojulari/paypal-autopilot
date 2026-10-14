@@ -11,21 +11,23 @@ export class ExecutionService {
         private readonly paypalInvoicing: PaypalInvoicingService
     ) {}
 
+    private async ensureApprover(userId: string, businessId: string) {
+        const membership = await this.prisma.businessMembership.findUnique({
+            where: { userId_businessId: { userId, businessId } },
+            select: { role: true },
+        });
+
+        if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+            throw new ForbiddenException('Owner or administrator access required.');
+        }
+    }
+
     async checkEligibility(
         userId: string,
         businessId: string,
         approvalId: string,
     ) {
-        const membership = await this.prisma.businessMembership.findUnique({
-            where: {
-                userId_businessId: { userId, businessId },
-            },
-            select: { role: true },
-        });
-
-        if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
-            throw new ForbiddenException('Only an authorized business owner or administrator can check execution eligibility.');
-        }
+        await this.ensureApprover(userId, businessId);
 
         const approval = await this.prisma.humanApproval.findFirst({
             where: { id: approvalId, businessId },
@@ -284,4 +286,155 @@ export class ExecutionService {
             throw new ConflictException('Execution failed or its outcome is uncertain. Inspect the approval record and reconcile with PayPal before attempting another action.');
         }
     }
+
+    
+    async reconcile(
+        userId: string,
+        businessId: string,
+        approvalId: string,
+    ) {
+        await this.ensureApprover(userId, businessId);
+
+        const approval = await this.prisma.humanApproval.findFirst({
+            where: { id: approvalId, businessId },
+            include: {
+                decision: {
+                    include: { run: { select: { businessId: true } } },
+                },
+            },
+        });
+
+        if (!approval) {
+            throw new NotFoundException('Approval request not found.');
+        }
+
+        if (
+            approval.status !== 'APPROVED' ||
+            approval.decision.run.businessId !== businessId ||
+            approval.decision.decision !== 'REVIEW_AND_SEND_PAYMENT_REQUEST'
+        ) {
+            throw new BadRequestException('This approval is not eligible for PayPal invoice reconciliation.');
+        }
+
+        if (!approval.paypalInvoiceId) {
+            throw new ConflictException('No PayPal invoice ID is saved. The draft-creation outcome is unknown; investigate PayPal before creating another invoice.');
+        }
+
+        if (!['IN_PROGRESS', 'FAILED', 'SUCCEEDED'].includes(approval.executionStatus)) {
+            throw new ConflictException(`Cannot reconcile execution in state ${approval.executionStatus}.`);
+        }
+
+        const invoice = await this.prisma.invoice.findFirst({
+            where: {
+                id: approval.decision.invoiceId,
+                businessId,
+            },
+            include: {
+                customer: { select: { email: true } },
+            },
+        });
+
+        if (!invoice) {
+            throw new NotFoundException('Local invoice not found.');
+        }
+
+        let external: Awaited<ReturnType<PaypalInvoicingService['getInvoice']>>;
+
+        try {
+            external = await this.paypalInvoicing.getInvoice(approval.paypalInvoiceId);
+        } catch {
+            throw new ConflictException('Could not verify the PayPal invoice. Execution state is unchanged; retry reconciliation later.');
+        }
+
+        const externalEmail = external.primary_recipients?.[0]?.billing_info?.email_address?.trim().toLowerCase();
+        const expectedEmail = invoice.customer.email?.trim().toLowerCase();
+
+        if (
+            external.id !== approval.paypalInvoiceId ||
+            external.detail?.reference !== invoice.id ||
+            external.detail?.currency_code !== invoice.currencyCode ||
+            !expectedEmail ||
+            externalEmail !== expectedEmail
+        ) {
+            throw new ConflictException('PayPal invoice details do not match the local invoice. No automatic recovery was performed.');
+        }
+
+        const status = external.status.toUpperCase();
+        const sentOrFurther = [
+            'SENT',
+            'UNPAID',
+            'PARTIALLY_PAID',
+            'PAID',
+            'MARKED_AS_PAID',
+        ].includes(status);
+
+        if (sentOrFurther) {
+            const result = await this.prisma.humanApproval.updateMany({
+                where: {
+                    id: approvalId,
+                    businessId,
+                    paypalInvoiceId: external.id,
+                    executionStatus: {
+                        in: ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'],
+                    },
+                },
+                data: {
+                    executionStatus: 'SUCCEEDED',
+                    executionResult: {
+                        stage: 'RECONCILED_WITH_PAYPAL',
+                        paypalInvoiceId: external.id,
+                        paypalStatus: status,
+                        reconciledAt: new Date().toISOString(),
+                        note: 'PayPal confirms the invoice progressed beyond draft status.',
+                    },
+                    executedAt: approval.executedAt ?? new Date(),
+                },
+            });
+
+            if (result.count !== 1) {
+                throw new ConflictException('Execution state changed during reconciliation. Fetch the approval and reconcile again.');
+            }
+
+            return {
+                approvalId,
+                executionStatus: 'SUCCEEDED',
+                paypalInvoiceId: external.id,
+                paypalStatus: status,
+                reconciled: true,
+                note: 'PayPal confirms the invoice is no longer a draft. This does not itself update the local invoice payment status.',
+            };
+        }
+
+        const result = {
+            stage: 'RECONCILIATION_REQUIRES_REVIEW',
+            paypalInvoiceId: external.id,
+            paypalStatus: status,
+            reconciledAt: new Date().toISOString(),
+            note:
+            status === 'DRAFT'
+                ? 'PayPal still reports a draft. A separately controlled send retry may be appropriate after reviewing the execution attempt.'
+                : 'The PayPal invoice state does not confirm successful sending.',
+        };
+
+        await this.prisma.humanApproval.updateMany({
+            where: {
+                id: approvalId,
+                businessId,
+                paypalInvoiceId: external.id,
+                executionStatus: { in: ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'] },
+            },
+            data: { executionResult: result },
+        });
+
+        return {
+            approvalId,
+            executionStatus: approval.executionStatus,
+            paypalInvoiceId: external.id,
+            paypalStatus: status,
+            reconciled: true,
+            requiresReview: true,
+            note: result.note,
+        };
+    }
+
 }

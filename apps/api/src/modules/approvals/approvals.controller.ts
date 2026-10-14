@@ -54,11 +54,7 @@ export class ApprovalsController {
         @Param('businessId') businessId: string,
         @Param('approvalId') approvalId: string,
     ) {
-        return this.executionService.checkEligibility(
-            req.user.sub,
-            businessId,
-            approvalId,
-        );
+        return this.executionService.checkEligibility(req.user.sub, businessId, approvalId);
     }
 
     @Post(':approvalId/execute')
@@ -67,10 +63,15 @@ export class ApprovalsController {
         @Param('businessId') businessId: string,
         @Param('approvalId') approvalId: string,
     ) {
-        return this.executionService.executeApproved(
-            req.user.sub,
-            businessId,
-            approvalId,
-        );
+        return this.executionService.executeApproved(req.user.sub, businessId, approvalId);
+    }
+
+    @Post(':approvalId/reconcile')
+    reconcile(
+        @Req() req: any,
+        @Param('businessId') businessId: string,
+        @Param('approvalId') approvalId: string,
+    ) {
+        return this.executionService.reconcile(req.user.sub, businessId, approvalId);
     }
 }

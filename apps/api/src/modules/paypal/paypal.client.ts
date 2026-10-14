@@ -323,4 +323,40 @@ export class PaypalClient {
             throw new InternalServerErrorException('PayPal invoice sending failed or returned an uncertain result. Reconcile with PayPal before retrying.');
         }
     }
+
+    
+    async getInvoice(paypalInvoiceId: string): Promise<{
+        id: string;
+        status: string;
+        detail?: {
+            reference?: string;
+            currency_code?: string;
+        };
+        primary_recipients?: Array<{
+            billing_info?: {
+            email_address?: string;
+            };
+        }>;
+    }> {
+        const token = await this.getAccessToken();
+
+        const response = await firstValueFrom(
+            this.http.get(
+                `${this.baseUrl}/v2/invoicing/invoices/${encodeURIComponent(paypalInvoiceId)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/json',
+                    },
+                },
+            ),
+        );
+
+        if (!response.data?.id || !response.data?.status) {
+            throw new Error('PayPal returned incomplete invoice details.');
+        }
+
+    return response.data;
+    }
+
 }
