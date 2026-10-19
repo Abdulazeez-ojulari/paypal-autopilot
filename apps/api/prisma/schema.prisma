@@ -13,40 +13,40 @@ datasource db {
 }
 
 model PaypalOrder {
-  id              String   @id @default(cuid())
-  paypalOrderId   String   @unique
-  status          String
-  currencyCode    String?
-  amount          Decimal? @db.Decimal(18, 2)
-  approvalUrl     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  captures        PaypalCapture[]
+  id            String          @id @default(cuid())
+  paypalOrderId String          @unique
+  status        String
+  currencyCode  String?
+  amount        Decimal?        @db.Decimal(18, 2)
+  approvalUrl   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  captures      PaypalCapture[]
 }
 
 model PaypalCapture {
-  id              String   @id @default(cuid())
-  paypalCaptureId String   @unique
+  id              String      @id @default(cuid())
+  paypalCaptureId String      @unique
   paypalOrderId   String
   status          String
   currencyCode    String?
-  amount          Decimal? @db.Decimal(18, 2)
-  createdAt       DateTime @default(now())
+  amount          Decimal?    @db.Decimal(18, 2)
+  createdAt       DateTime    @default(now())
   order           PaypalOrder @relation(fields: [paypalOrderId], references: [paypalOrderId])
 
   @@index([paypalOrderId])
 }
 
 model PaypalWebhookEvent {
-  id              String   @id @default(cuid())
-  eventId         String   @unique
-  eventType       String
-  resourceType    String?
-  resourceId      String?
-  summary         String?
-  processed       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  processedAt     DateTime?
+  id           String    @id @default(cuid())
+  eventId      String    @unique
+  eventType    String
+  resourceType String?
+  resourceId   String?
+  summary      String?
+  processed    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  processedAt  DateTime?
 
   @@index([eventType])
   @@index([resourceId])
@@ -70,60 +70,61 @@ model PaypalPaymentEvent {
 }
 
 model Business {
-  id          String     @id @default(cuid())
-  name        String
-  currency    String     @default("USD")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  customers   Customer[]
-  invoices    Invoice[]
-  aiRuns AiRun[]
-  memberships BusinessMembership[]
+  customers      Customer[]
+  invoices       Invoice[]
+  aiRuns         AiRun[]
+  memberships    BusinessMembership[]
   humanApprovals HumanApproval[]
 }
 
 model Customer {
-  id          String     @id @default(cuid())
-  businessId  String
-  name        String
-  email       String
-  riskLevel   String     @default("MEDIUM")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String   @id @default(cuid())
+  businessId String
+  name       String
+  email      String
+  riskLevel  String   @default("MEDIUM")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  business    Business   @relation(fields: [businessId], references: [id])
+  business Business @relation(fields: [businessId], references: [id])
 
-  invoices    Invoice[]
+  invoices Invoice[]
 
   @@index([businessId])
   @@index([email])
 }
 
 model Invoice {
-  id                String     @id @default(cuid())
-  businessId        String
-  customerId        String
+  id         String @id @default(cuid())
+  businessId String
+  customerId String
 
-  invoiceNumber     String     @unique
-  amount            Decimal    @db.Decimal(18, 2)
-  currencyCode      String
-  status            String
+  invoiceNumber String  @unique
+  amount        Decimal @db.Decimal(18, 2)
+  paidAmount    Decimal @default(0) @db.Decimal(18, 2)
+  currencyCode  String
+  status        String
 
-  issuedAt          DateTime
-  dueAt             DateTime
-  paidAt            DateTime?
+  issuedAt DateTime
+  dueAt    DateTime
+  paidAt   DateTime?
 
-  reminderCount     Int        @default(0)
+  reminderCount Int @default(0)
 
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  business          Business   @relation(fields: [businessId], references: [id])
+  business Business @relation(fields: [businessId], references: [id])
 
-  customer          Customer   @relation(fields: [customerId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
 
-  opportunities     RevenueOpportunity[]
+  opportunities RevenueOpportunity[]
 
   @@index([businessId])
   @@index([customerId])
@@ -132,26 +133,26 @@ model Invoice {
 }
 
 model RevenueOpportunity {
-  id                String    @id @default(cuid())
+  id String @id @default(cuid())
 
-  invoiceId         String
+  invoiceId String
 
-  type              String
-  priority          String
-  reason            String
+  type     String
+  priority String
+  reason   String
 
-  outstandingAmount Decimal   @db.Decimal(18, 2)
-  estimatedRecovery Decimal   @db.Decimal(18, 2)
-  confidence        Decimal   @db.Decimal(5, 2)
+  outstandingAmount Decimal @db.Decimal(18, 2)
+  estimatedRecovery Decimal @db.Decimal(18, 2)
+  confidence        Decimal @db.Decimal(5, 2)
 
   recommendedAction String
 
-  status            String    @default("OPEN")
+  status String @default("OPEN")
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  invoice           Invoice   @relation(fields: [invoiceId], references: [id])
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
 
   @@unique([invoiceId, type])
   @@index([invoiceId])
@@ -160,19 +161,19 @@ model RevenueOpportunity {
 }
 
 model AiRun {
-  id                String        @id @default(cuid())
+  id                String   @id @default(cuid())
   businessId        String
   provider          String
   model             String
-  status            String        @default("COMPLETED")
+  status            String   @default("COMPLETED")
   invoiceCount      Int
-  totalOutstanding  Decimal       @db.Decimal(18, 2)
-  estimatedRecovery Decimal       @db.Decimal(18, 2)
+  totalOutstanding  Decimal  @db.Decimal(18, 2)
+  estimatedRecovery Decimal  @db.Decimal(18, 2)
   summary           String
-  createdAt         DateTime      @default(now())
+  createdAt         DateTime @default(now())
 
-  business          Business      @relation(fields: [businessId], references: [id])
-  decisions         AiDecision[]
+  business  Business     @relation(fields: [businessId], references: [id])
+  decisions AiDecision[]
 
   @@index([businessId, createdAt])
   @@index([status])
@@ -180,19 +181,19 @@ model AiRun {
 
 model AiDecision {
   id                String   @id @default(cuid())
-  aiRunId            String
-  invoiceId          String
-  decision           String
-  reason             String
-  estimatedRecovery  Decimal  @db.Decimal(18, 2)
-  requiresApproval   Boolean
-  policyStatus       String
-  policyReason       String
-  createdAt          DateTime @default(now())
+  aiRunId           String
+  invoiceId         String
+  decision          String
+  reason            String
+  estimatedRecovery Decimal  @db.Decimal(18, 2)
+  requiresApproval  Boolean
+  policyStatus      String
+  policyReason      String
+  createdAt         DateTime @default(now())
 
   approval HumanApproval?
 
-  run                AiRun    @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+  run AiRun @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
 
   @@unique([aiRunId, invoiceId])
   @@index([invoiceId])
@@ -200,13 +201,13 @@ model AiDecision {
 }
 
 model User {
-  id           String               @id @default(cuid())
-  email        String               @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  memberships  BusinessMembership[]
+  memberships BusinessMembership[]
 
   decidedApprovals HumanApproval[] @relation("ApprovalDecisionMaker")
 }
@@ -218,36 +219,36 @@ model BusinessMembership {
   role       String   @default("MEMBER")
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@unique([userId, businessId])
   @@index([businessId, role])
 }
 
 model HumanApproval {
-  id                 String   @id @default(cuid())
-  businessId         String
-  decisionId         String   @unique
+  id         String @id @default(cuid())
+  businessId String
+  decisionId String @unique
 
-  status             String   @default("PENDING")
-  decidedByUserId    String?
-  decidedAt          DateTime?
-  rejectionReason    String?
+  status          String    @default("PENDING")
+  decidedByUserId String?
+  decidedAt       DateTime?
+  rejectionReason String?
 
-  executionStatus    String   @default("NOT_STARTED")
-  executionAttemptKey String? @unique
-  executionResult    Json?
-  executedAt         DateTime?
+  executionStatus     String    @default("NOT_STARTED")
+  executionAttemptKey String?   @unique
+  executionResult     Json?
+  executedAt          DateTime?
 
   paypalInvoiceId String? @unique
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  business           Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  decision           AiDecision  @relation(fields: [decisionId], references: [id], onDelete: Cascade)
-  decidedBy          User?       @relation("ApprovalDecisionMaker", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+  business  Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  decision  AiDecision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  decidedBy User?      @relation("ApprovalDecisionMaker", fields: [decidedByUserId], references: [id], onDelete: SetNull)
 
   @@index([businessId, status, createdAt])
   @@index([businessId, executionStatus])

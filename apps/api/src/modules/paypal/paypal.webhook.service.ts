@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { PaypalClient } from './paypal.client';
 import { PaypalWebhookEvent, PaypalWebhookResource } from './paypal.webhook.types';
-import { PaypalPaymentEventService } from './paypal.payment-event.service';
+import { PaypalInvoiceSyncService } from './paypal-invoice-sync.service';
 
 @Injectable()
 export class PaypalWebhookService {
@@ -11,7 +11,7 @@ export class PaypalWebhookService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly paypalClient: PaypalClient,
-        private readonly paymentEventService: PaypalPaymentEventService,
+        private readonly invoiceSyncService: PaypalInvoiceSyncService,
     ) {}
 
     async handleWebhook(
@@ -24,16 +24,26 @@ export class PaypalWebhookService {
         },
         event: PaypalWebhookEvent
     ) {
+        
+        console.log(JSON.stringify(event))
+        console.log(JSON.stringify(headers))
         if (!event?.id || !event?.event_type) {
             throw new BadRequestException('Invalid PayPal webhook event.');
         }
 
-        const existingEvent =
-            await this.prisma.paypalWebhookEvent.findUnique({
-                where: {
-                    eventId: event.id,
-                },
-            });
+        const verified = await this.paypalClient.verifyWebhookSignature(headers, event);
+
+        // console.log(verified)
+
+        if (!verified) {
+            throw new BadRequestException('Invalid PayPal webhook signature.');
+        }
+
+        const existingEvent = await this.prisma.paypalWebhookEvent.findUnique({
+            where: {
+                eventId: event.id,
+            },
+        });
 
         if (existingEvent?.processed) {
             return {
@@ -43,22 +53,7 @@ export class PaypalWebhookService {
             };
         }
 
-        // console.log(event)
-
-        const verified =
-            await this.paypalClient.verifyWebhookSignature(
-                headers,
-                event,
-            );
-
-        // console.log(verified)
-
-        if (!verified) {
-            throw new BadRequestException('Invalid PayPal webhook signature.');
-        }
-
-        const webhookEvent =
-        await this.prisma.paypalWebhookEvent.upsert({
+        const webhookEvent = await this.prisma.paypalWebhookEvent.upsert({
             where: {
                 eventId: event.id,
             },
@@ -72,7 +67,7 @@ export class PaypalWebhookService {
             },
         });
 
-        console.log(webhookEvent, "Sdfsdfs")
+        // console.log(webhookEvent, "Sdfsdfs")
 
         await this.processEvent(event);
 
@@ -109,6 +104,17 @@ export class PaypalWebhookService {
 
             case 'PAYMENT.CAPTURE.REFUNDED':
                 await this.handleCaptureStatus(event.resource, 'REFUNDED');
+                break;
+
+            case 'INVOICING.INVOICE.PAID':
+            case 'INVOICING.INVOICE.SENT':
+            case 'INVOICING.INVOICE.CANCELLED':
+            case 'INVOICING.INVOICE.REFUNDED':
+                if (event.resource?.id) {
+                    await this.invoiceSyncService.sync(event.resource.id);
+                } else {
+                    this.logger.warn(`PayPal invoice event ${event.id} has no invoice ID.`);
+                }
                 break;
 
             default:

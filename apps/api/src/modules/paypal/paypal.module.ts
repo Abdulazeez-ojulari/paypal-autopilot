@@ -6,6 +6,7 @@ import { PaypalClient } from './paypal.client';
 import { PaypalWebhookService } from './paypal.webhook.service';
 import { PaypalWebhookController } from './paypal.webhook.controller';
 import { PaypalPaymentEventService } from './paypal.payment-event.service';
+import { PaypalInvoiceSyncService } from './paypal-invoice-sync.service';
 
 @Module({
     imports: [HttpModule],
@@ -20,6 +21,7 @@ import { PaypalPaymentEventService } from './paypal.payment-event.service';
         PaypalClient,
         PaypalWebhookService,
         PaypalPaymentEventService,
+        PaypalInvoiceSyncService,
     ],
 
     exports: [

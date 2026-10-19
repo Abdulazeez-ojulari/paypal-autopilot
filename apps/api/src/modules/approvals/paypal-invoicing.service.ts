@@ -47,9 +47,19 @@ export class PaypalInvoicingService {
             reference?: string;
             currency_code?: string;
         };
+        amount?: {
+            currency_code?: string;
+            value?: string;
+        };
+        payments?: {
+            paid_amount?: {
+                currency_code?: string;
+                value?: string;
+            };
+        };
         primary_recipients?: Array<{
             billing_info?: {
-            email_address?: string;
+                    email_address?: string;
             };
         }>;
     }> {

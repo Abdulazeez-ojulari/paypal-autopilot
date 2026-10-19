@@ -25,10 +25,14 @@ export class RevenueOpportunityService {
             throw new NotFoundException(`Business ${businessId} not found`);
         }
 
+        const now = new Date();
+
         const invoices = await this.prisma.invoice.findMany({
             where: {
                 businessId,
-                status: 'OVERDUE',
+                status: {
+                    in: ['OVERDUE', 'PARTIALLY_PAID'],
+                },
             },
             include: {
                 customer: true,
@@ -39,30 +43,51 @@ export class RevenueOpportunityService {
         });
 
         const opportunities: RevenueOpportunity[] = [];
+        const eligibleInvoiceIds = new Set<string>();
 
         for (const invoice of invoices) {
-            const overdueDays = Math.max(
-                0,
-                Math.floor(
-                    (Date.now() - invoice.dueAt.getTime()) / (1000 * 60 * 60 * 24),
-                ),
-            );
+            if (
+                invoice.status === 'PARTIALLY_PAID' && invoice.dueAt.getTime() > now.getTime()
+            ) {
+                continue;
+            }
 
             const amount = Number(invoice.amount);
+            const paidAmount = Number(invoice.paidAmount ?? 0);
+
+            if (
+                !Number.isFinite(amount) || !Number.isFinite(paidAmount) ||
+                amount <= 0 || paidAmount < 0
+            ) {
+                continue;
+            }
+
+            const outstandingAmount = Number(Math.max(0, amount - paidAmount).toFixed(2));
+
+            if (outstandingAmount <= 0) {
+                continue;
+            }
+
+            const overdueDays = Math.max(
+                0,
+                Math.floor((now.getTime() - invoice.dueAt.getTime()) / (1000 * 60 * 60 * 24))
+            );
             const risk = invoice.customer.riskLevel;
 
             const decision = this.determineOpportunityDecision(
-                amount,
+                outstandingAmount,
                 risk,
                 overdueDays,
             );
 
-            const estimatedRecovery = Number((amount * decision.recoveryRate).toFixed(2));
+            const estimatedRecovery = Number((outstandingAmount * decision.recoveryRate).toFixed(2));
 
             const reason =
                 `${overdueDays} days overdue; ` +
                 `customer risk is ${risk}; ` +
-                `outstanding amount is ${invoice.currencyCode} ${amount.toFixed(2)}.`;
+                `original invoice amount is ${invoice.currencyCode} ${amount.toFixed(2)}; ` +
+                `amount paid is ${invoice.currencyCode} ${paidAmount.toFixed(2)}; ` +
+                `outstanding amount is ${invoice.currencyCode} ${outstandingAmount.toFixed(2)}.`;
 
             const opportunity = await this.prisma.revenueOpportunity.upsert({
                 where: {
@@ -71,23 +96,21 @@ export class RevenueOpportunityService {
                         type: 'OVERDUE_INVOICE',
                     },
                 },
-
                 update: {
                     priority: decision.priority,
                     reason,
-                    outstandingAmount: amount,
+                    outstandingAmount,
                     estimatedRecovery,
                     confidence: decision.recoveryRate,
                     recommendedAction: decision.recommendedAction,
                     status: 'OPEN',
                 },
-
                 create: {
                     invoiceId: invoice.id,
                     type: 'OVERDUE_INVOICE',
                     priority: decision.priority,
                     reason,
-                    outstandingAmount: amount,
+                    outstandingAmount,
                     estimatedRecovery,
                     confidence: decision.recoveryRate,
                     recommendedAction: decision.recommendedAction,
@@ -95,13 +118,48 @@ export class RevenueOpportunityService {
                 },
             });
 
+            eligibleInvoiceIds.add(invoice.id);
             opportunities.push(opportunity);
         }
 
-        return this.buildSummary(
-            businessId,
-            opportunities,
-        );
+        const existingOpenOpportunities =
+            await this.prisma.revenueOpportunity.findMany({
+                where: {
+                    type: 'OVERDUE_INVOICE',
+                    status: 'OPEN',
+                    invoice: {
+                        businessId,
+                    },
+                },
+                select: {
+                    id: true,
+                    invoiceId: true,
+                },
+            });
+
+        const staleOpportunityIds = existingOpenOpportunities
+            .filter(
+                (opportunity) => !eligibleInvoiceIds.has(opportunity.invoiceId),
+            )
+            .map((opportunity) => opportunity.id);
+
+        if (staleOpportunityIds.length > 0) {
+            await this.prisma.revenueOpportunity.updateMany({
+                where: {
+                    id: {
+                        in: staleOpportunityIds,
+                    },
+                },
+                data: {
+                    status: 'CLOSED',
+                    outstandingAmount: 0,
+                    estimatedRecovery: 0,
+                    reason: 'Closed because the invoice is no longer eligible for overdue recovery or has no outstanding balance.',
+                },
+            });
+        }
+
+        return this.buildSummary(businessId, opportunities);
     }
 
     async getOpportunities(businessId: string) {
@@ -117,6 +175,7 @@ export class RevenueOpportunityService {
 
         const opportunities = await this.prisma.revenueOpportunity.findMany({
             where: {
+                status: 'OPEN',
                 invoice: {
                     businessId,
                 },
@@ -138,10 +197,7 @@ export class RevenueOpportunityService {
             ],
         });
 
-        return this.buildSummary(
-            businessId,
-            opportunities,
-        );
+        return this.buildSummary(businessId, opportunities);
     }
 
     private determineOpportunityDecision(
