@@ -1,12 +1,16 @@
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { PaypalClient } from './paypal.client';
 import { PaypalWebhookEvent, PaypalWebhookResource } from './paypal.webhook.types';
 import { PaypalInvoiceSyncService } from './paypal-invoice-sync.service';
 
+type CaptureStatus = 'COMPLETED' | 'PENDING' | 'DENIED' | 'REFUNDED';
+
 @Injectable()
 export class PaypalWebhookService {
     private readonly logger = new Logger(PaypalWebhookService.name);
+    private readonly staleClaimMs = 5 * 60 * 1000;
 
     constructor(
         private readonly prisma: PrismaService,
@@ -22,41 +26,21 @@ export class PaypalWebhookService {
             transmission_sig: string;
             transmission_time: string;
         },
-        event: PaypalWebhookEvent
+        event: PaypalWebhookEvent,
     ) {
-        
-        // console.log(JSON.stringify(event))
-        // console.log(JSON.stringify(headers))
         if (!event?.id || !event?.event_type) {
             throw new BadRequestException('Invalid PayPal webhook event.');
         }
 
+        // Always verify authenticity before trusting or processing the event.
         const verified = await this.paypalClient.verifyWebhookSignature(headers, event);
-
-        // console.log(verified)
 
         if (!verified) {
             throw new BadRequestException('Invalid PayPal webhook signature.');
         }
 
-        const existingEvent = await this.prisma.paypalWebhookEvent.findUnique({
-            where: {
-                eventId: event.id,
-            },
-        });
-
-        if (existingEvent?.processed) {
-            return {
-                received: true,
-                duplicate: true,
-                eventId: event.id,
-            };
-        }
-
-        const webhookEvent = await this.prisma.paypalWebhookEvent.upsert({
-            where: {
-                eventId: event.id,
-            },
+        const storedEvent = await this.prisma.paypalWebhookEvent.upsert({
+            where: { eventId: event.id },
             update: {},
             create: {
                 eventId: event.id,
@@ -67,73 +51,150 @@ export class PaypalWebhookService {
             },
         });
 
-        // console.log(webhookEvent, "Sdfsdfs")
+        if (storedEvent.processed) {
+            return {
+                received: true,
+                duplicate: true,
+                eventId: event.id,
+            };
+        }
 
-        await this.processEvent(event);
+        const claimed = await this.claimEvent(event.id);
 
-        await this.prisma.paypalWebhookEvent.update({
+        if (!claimed) {
+            const current = await this.prisma.paypalWebhookEvent.findUnique({
+                where: { eventId: event.id },
+            });
+
+            if (current?.processed) {
+                return {
+                    received: true,
+                    duplicate: true,
+                    eventId: event.id,
+                };
+            }
+
+            return {
+                received: true,
+                duplicate: true,
+                processing: Boolean(current?.processing),
+                eventId: event.id,
+            };
+        }
+
+        try {
+            await this.processEvent(event);
+
+            await this.prisma.paypalWebhookEvent.update({
+                where: { eventId: event.id },
+                data: {
+                    processed: true,
+                    processing: false,
+                    processedAt: new Date(),
+                },
+            });
+
+            return {
+                received: true,
+                duplicate: false,
+                eventId: event.id,
+            };
+        } catch (error) {
+            await this.prisma.paypalWebhookEvent.updateMany({
+                where: {
+                    eventId: event.id,
+                    processed: false,
+                },
+                data: {
+                    processing: false,
+                },
+            });
+
+            this.logger.error(
+                `Failed to process PayPal webhook ${event.id} (${event.event_type}).`,
+                error instanceof Error ? error.stack : undefined,
+            );
+
+            throw error;
+        }
+    }
+
+    private async claimEvent(eventId: string): Promise<boolean> {
+        const claimed = await this.prisma.paypalWebhookEvent.updateMany({
             where: {
-                id: webhookEvent.id,
+                eventId,
+                processed: false,
+                processing: false
             },
             data: {
-                processed: true,
-                processedAt: new Date(),
+                processing: true,
             },
         });
 
-        return {
-            received: true,
-            duplicate: false,
-            eventId: event.id,
-        };
+        if (claimed.count > 0) {
+            return true;
+        }
+
+        const staleBefore = new Date(Date.now() - this.staleClaimMs);
+
+        const recovered = await this.prisma.paypalWebhookEvent.updateMany({
+            where: {
+                eventId,
+                processed: false,
+                processing: true,
+                updatedAt: { lt: staleBefore },
+            },
+            data: {
+                processing: true,
+            },
+        });
+
+        return recovered.count > 0;
     }
 
-    private async processEvent(event: PaypalWebhookEvent) {
+    private async processEvent(event: PaypalWebhookEvent): Promise<void> {
         switch (event.event_type) {
             case 'PAYMENT.CAPTURE.COMPLETED':
-                await this.handleCaptureCompleted(event.resource);
-                break;
+                await this.handleCaptureStatus(event.resource, 'COMPLETED');
+                return;
 
             case 'PAYMENT.CAPTURE.PENDING':
                 await this.handleCaptureStatus(event.resource, 'PENDING');
-                break;
+                return;
 
             case 'PAYMENT.CAPTURE.DENIED':
                 await this.handleCaptureStatus(event.resource, 'DENIED');
-                break;
+                return;
 
             case 'PAYMENT.CAPTURE.REFUNDED':
                 await this.handleCaptureStatus(event.resource, 'REFUNDED');
-                break;
+                return;
 
             case 'INVOICING.INVOICE.PAID':
             case 'INVOICING.INVOICE.SENT':
             case 'INVOICING.INVOICE.CANCELLED':
             case 'INVOICING.INVOICE.REFUNDED':
-                if (event.resource?.id) {
-                    await this.invoiceSyncService.sync(event.resource.id);
-                } else {
+                if (!event.resource?.id) {
                     this.logger.warn(`PayPal invoice event ${event.id} has no invoice ID.`);
+                    return;
                 }
-                break;
+
+                await this.invoiceSyncService.sync(event.resource.id);
+                return;
 
             default:
                 this.logger.log(`Ignoring PayPal event: ${event.event_type}`);
         }
     }
 
-    private async handleCaptureCompleted(resource: PaypalWebhookResource) {
-        await this.handleCaptureStatus(resource, 'COMPLETED');
-    }
-
     private async handleCaptureStatus(
         resource: PaypalWebhookResource,
-        status: string,
-    ) {
-        const captureId = resource.id;
+        status: CaptureStatus,
+    ): Promise<void> {
+        const captureId = resource?.id;
 
         if (!captureId) {
-            this.logger.warn('PayPal webhook has no capture ID.');
+            this.logger.warn('PayPal capture webhook has no capture ID.');
             return;
         }
 
@@ -146,63 +207,50 @@ export class PaypalWebhookService {
 
         const amount = resource.amount?.value ?? null;
         const currencyCode = resource.amount?.currency_code ?? null;
+        const idempotencyKey = `capture:${captureId}:${status}`;
 
-        const existingOrder = await this.prisma.paypalOrder.findUnique({
-                where: {
-                    paypalOrderId: orderId,
-                },
+        await this.prisma.$transaction(async (tx) => {
+            const existingOrder = await tx.paypalOrder.findUnique({
+                where: { paypalOrderId: orderId },
+                select: { status: true },
             });
 
-        const previousStatus = existingOrder?.status ?? null;
+            await tx.paypalOrder.updateMany({
+                where: { paypalOrderId: orderId },
+                data: { status },
+            });
 
-        await this.prisma.$transaction(
-            async (tx) => {
-                await tx.paypalOrder.updateMany({
-                    where: {
-                        paypalOrderId: orderId,
-                    },
-                    data: {
-                        status,
-                    },
-                });
+            await tx.paypalCapture.upsert({
+                where: { paypalCaptureId: captureId },
+                update: {
+                    status,
+                    currencyCode,
+                    amount,
+                },
+                create: {
+                    paypalCaptureId: captureId,
+                    paypalOrderId: orderId,
+                    status,
+                    currencyCode,
+                    amount,
+                },
+            });
+            await tx.paypalPaymentEvent.upsert({
+                where: { idempotencyKey },
+                update: {},
+                create: {
+                    paypalOrderId: orderId,
+                    paypalCaptureId: captureId,
+                    source: 'PAYPAL_WEBHOOK',
+                    eventType: `PAYMENT.CAPTURE.${status}`,
+                    previousStatus: existingOrder?.status ?? null,
+                    newStatus: status,
+                    idempotencyKey,
+                    metadata: { amount, currencyCode },
+                },
+            });
+        });
 
-                await tx.paypalCapture.upsert({
-                    where: {
-                        paypalCaptureId: captureId,
-                    },
-
-                    update: {
-                        status,
-                        currencyCode,
-                        amount,
-                    },
-
-                    create: {
-                        paypalCaptureId: captureId,
-                        paypalOrderId: orderId,
-                        status,
-                        currencyCode,
-                        amount,
-                    },
-                });
-
-                await tx.paypalPaymentEvent.create({
-                    data: {
-                        paypalOrderId: orderId,
-                        paypalCaptureId: captureId,
-                        source: 'PAYPAL_WEBHOOK',
-                        eventType: `PAYMENT.CAPTURE.${status}`,
-                        previousStatus,
-                        newStatus: status,
-                        metadata: {
-                            amount,
-                            currencyCode,
-                        },
-                    },
-                });
-            },
-        );
-
-        this.logger.log( `Payment ${captureId}: ${previousStatus} -> ${status}`);
+        this.logger.log(`PayPal capture ${captureId} status synchronized: ${status}`);
     }
 }

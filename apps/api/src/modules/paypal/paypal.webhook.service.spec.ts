@@ -34,28 +34,30 @@ describe('PaypalWebhookService', () => {
 
     beforeEach(() => {
         prisma = {
-        paypalWebhookEvent: {
-            findUnique: jest.fn().mockResolvedValue(null),
-            upsert: jest.fn().mockResolvedValue({ id: 'db-event-1' }),
-            update: jest.fn().mockResolvedValue({}),
-        },
-        paypalOrder: {
-            findUnique: jest.fn().mockResolvedValue({ status: 'CREATED' }),
-            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-        },
-        paypalCapture: {
-            upsert: jest.fn().mockResolvedValue({}),
-        },
-        paypalPaymentEvent: {
-            create: jest.fn().mockResolvedValue({}),
-        },
-        $transaction: jest.fn(async (callback: (tx: any) => any) =>
-            callback({
-                paypalOrder: prisma.paypalOrder,
-                paypalCapture: prisma.paypalCapture,
-                paypalPaymentEvent: prisma.paypalPaymentEvent,
-            }),
-        ),
+            paypalWebhookEvent: {
+                findUnique: jest.fn().mockResolvedValue(null),
+                upsert: jest.fn().mockResolvedValue({ id: 'db-event-1' }),
+                update: jest.fn().mockResolvedValue({}),
+                updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            },
+            paypalOrder: {
+                findUnique: jest.fn().mockResolvedValue({ status: 'CREATED' }),
+                updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            },
+            paypalCapture: {
+                upsert: jest.fn().mockResolvedValue({}),
+            },
+            paypalPaymentEvent: {
+                create: jest.fn().mockResolvedValue({}),
+                upsert: jest.fn().mockResolvedValue({ id: 'payment-event-1' }),
+            },
+            $transaction: jest.fn(async (callback: (tx: any) => any) =>
+                callback({
+                    paypalOrder: prisma.paypalOrder,
+                    paypalCapture: prisma.paypalCapture,
+                    paypalPaymentEvent: prisma.paypalPaymentEvent,
+                }),
+            ),
         };
 
         paypalClient = { verifyWebhookSignature: jest.fn().mockResolvedValue(true) };
@@ -96,22 +98,44 @@ describe('PaypalWebhookService', () => {
     });
 
     it('verifies the signature before checking for duplicates', async () => {
-        prisma.paypalWebhookEvent.findUnique.mockResolvedValue({
+        prisma.paypalWebhookEvent.upsert.mockResolvedValue({
             id: 'db-event-1',
+            eventId: 'event-1',
+            eventType: 'PAYMENT.CAPTURE.COMPLETED',
+            resourceType: 'capture',
+            resourceId: 'capture-1',
+            summary: null,
             processed: true,
+            processing: false,
+            processedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         });
 
         const result = await service.handleWebhook(headers, event());
 
         expect(paypalClient.verifyWebhookSignature).toHaveBeenCalledWith(headers, event());
-        expect(prisma.paypalWebhookEvent.findUnique).toHaveBeenCalledWith({
-            where: { eventId: 'event-1' },
-        });
+        expect(prisma.paypalWebhookEvent.upsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { eventId: 'event-1' },
+                create: expect.objectContaining({
+                    eventId: 'event-1',
+                }),
+            }),
+        );
+
+        expect(
+            paypalClient.verifyWebhookSignature.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+            prisma.paypalWebhookEvent.upsert.mock.invocationCallOrder[0],
+        );
         expect(result).toEqual({
             received: true,
             duplicate: true,
             eventId: 'event-1',
         });
+        expect(prisma.paypalWebhookEvent.update).not.toHaveBeenCalled();
+        expect(prisma.paypalWebhookEvent.updateMany).not.toHaveBeenCalled();
         expect(invoiceSyncService.sync).not.toHaveBeenCalled();
     });
 
@@ -132,12 +156,13 @@ describe('PaypalWebhookService', () => {
 
         expect(prisma.paypalWebhookEvent.update).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { id: 'db-event-1' },
+                where: { eventId: 'event-1' },
                 data: expect.objectContaining({
                     processed: true,
+                    processing: false,
                     processedAt: expect.any(Date),
                 }),
-            })
+            }),
         );
 
         expect(result).toEqual({ received: true, duplicate: false, eventId: 'event-1' });
@@ -192,15 +217,19 @@ describe('PaypalWebhookService', () => {
             }),
         );
 
-        expect(prisma.paypalPaymentEvent.create).toHaveBeenCalledWith(
+        expect(prisma.paypalPaymentEvent.upsert).toHaveBeenCalledWith(
             expect.objectContaining({
-                data: expect.objectContaining({
+                where: {
+                    idempotencyKey: 'capture:capture-1:COMPLETED',
+                },
+                create: expect.objectContaining({
                     paypalOrderId: 'order-1',
                     paypalCaptureId: 'capture-1',
                     source: 'PAYPAL_WEBHOOK',
                     eventType: 'PAYMENT.CAPTURE.COMPLETED',
                     newStatus: 'COMPLETED',
                 }),
+                update: {},
             }),
         );
     });

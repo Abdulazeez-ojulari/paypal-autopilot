@@ -37,6 +37,7 @@ model PaypalCapture {
   @@index([paypalOrderId])
 }
 
+
 model PaypalWebhookEvent {
   id           String    @id @default(cuid())
   eventId      String    @unique
@@ -45,11 +46,14 @@ model PaypalWebhookEvent {
   resourceId   String?
   summary      String?
   processed    Boolean   @default(false)
-  createdAt    DateTime  @default(now())
+  processing   Boolean   @default(false)
   processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime?  @updatedAt
 
   @@index([eventType])
   @@index([resourceId])
+  @@index([processed, processing])
 }
 
 model PaypalPaymentEvent {
@@ -61,6 +65,7 @@ model PaypalPaymentEvent {
   previousStatus  String?
   newStatus       String?
   metadata        Json?
+  idempotencyKey  String?  @unique
   createdAt       DateTime @default(now())
 
   @@index([paypalOrderId])
