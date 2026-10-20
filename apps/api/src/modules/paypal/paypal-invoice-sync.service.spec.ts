@@ -203,4 +203,60 @@ describe('PaypalInvoiceSyncService', () => {
         expect(result.synchronized).toBe(false);
         expect(prisma.invoice.update).not.toHaveBeenCalled();
     });
+
+    it('rejects a mismatched PayPal invoice ID', async () => {
+        await expect(
+            runSync(makePaypalInvoice('PAID', { id: 'different-paypal-invoice' })),
+        ).rejects.toThrow(/invoice id mismatch/i);
+
+        expect(prisma.invoice.update).not.toHaveBeenCalled();
+    });
+
+    it.each(['-1.00', '101.00', 'not-a-number'])(
+        'rejects an invalid paid amount: %s',
+        async (value) => {
+            await expect(
+            runSync(makePaypalInvoice('PARTIALLY_PAID', {
+                payments: {
+                    paid_amount: {
+                        currency_code: 'USD',
+                        value,
+                    },
+                }
+            }))
+            ).rejects.toThrow();
+
+            expect(prisma.invoice.update).not.toHaveBeenCalled();
+        },
+    );
+
+    it('rejects a paid amount in a different currency', async () => {
+        await expect(
+            runSync(makePaypalInvoice('PARTIALLY_PAID', {
+                payments: {
+                    paid_amount: {
+                        currency_code: 'EUR',
+                        value: '40.00',
+                    },
+                }
+            })),
+        ).rejects.toThrow(/paid amount currency mismatch/i);
+
+        expect(prisma.invoice.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects PARTIALLY_PAID without a positive paid amount', async () => {
+        await expect(
+            runSync(makePaypalInvoice('PARTIALLY_PAID', {
+                payments: {
+                    paid_amount: {
+                        currency_code: 'USD',
+                        value: '0.00',
+                    },
+                }
+            }))
+        ).rejects.toThrow(/partially_paid/i);
+
+        expect(prisma.invoice.update).not.toHaveBeenCalled();
+    });
 });

@@ -25,8 +25,8 @@ export class PaypalWebhookService {
         event: PaypalWebhookEvent
     ) {
         
-        console.log(JSON.stringify(event))
-        console.log(JSON.stringify(headers))
+        // console.log(JSON.stringify(event))
+        // console.log(JSON.stringify(headers))
         if (!event?.id || !event?.event_type) {
             throw new BadRequestException('Invalid PayPal webhook event.');
         }

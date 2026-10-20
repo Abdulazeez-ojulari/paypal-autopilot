@@ -73,6 +73,7 @@ export class ExecutionService {
                 id: true,
                 status: true,
                 amount: true,
+                paidAmount: true,
                 currencyCode: true,
                 dueAt: true,
                 paidAt: true,
@@ -88,9 +89,16 @@ export class ExecutionService {
             throw new BadRequestException('The invoice is no longer eligible for overdue-invoice recovery.');
         }
 
+        const outstandingAmount = Number(
+            (Number(invoice.amount) - Number(invoice.paidAmount ?? 0)).toFixed(2)
+        );
+
+        if (!Number.isFinite(outstandingAmount) || outstandingAmount <= 0) {
+            throw new BadRequestException('The invoice has no outstanding balance to recover.');
+        }
+
         const supportedActions = [
             'REVIEW_AND_SEND_PAYMENT_REQUEST',
-            'SEND_PAYMENT_REMINDER',
         ];
 
         if (!supportedActions.includes(approval.decision.decision)) {
@@ -106,10 +114,12 @@ export class ExecutionService {
                 id: invoice.id,
                 invoiceNumber: invoice.invoiceNumber,
                 amount: invoice.amount.toString(),
+                paidAmount: invoice.paidAmount,
                 currencyCode: invoice.currencyCode,
                 dueAt: invoice.dueAt,
                 status: invoice.status,
             },
+            standingAmount: outstandingAmount.toFixed(2),
             action: approval.decision.decision,
             eligibleForExecution: true,
             executed: false,
@@ -194,6 +204,12 @@ export class ExecutionService {
                 throw new Error('Invoice amount must be positive.');
             }
 
+            const outstandingAmount = Number((Number(invoice.amount) - Number(invoice.paidAmount ?? 0)).toFixed(2));
+
+            if (!Number.isFinite(outstandingAmount) || outstandingAmount <= 0) {
+                throw new Error('The invoice has no outstanding balance to recover.');
+            }
+
             let paypalInvoiceId = approval.paypalInvoiceId;
             let stageResult: any;
 
@@ -204,7 +220,7 @@ export class ExecutionService {
                     attemptKey,
                     localInvoiceId: invoice.id,
                     invoiceNumber: invoice.invoiceNumber,
-                    amount: invoice.amount.toString(),
+                    amount: outstandingAmount.toFixed(2),
                     currencyCode: invoice.currencyCode,
                     customerName: invoice.customer.name,
                     customerEmail: invoice.customer.email,
