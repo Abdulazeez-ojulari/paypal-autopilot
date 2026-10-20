@@ -122,25 +122,22 @@ export class RevenueOpportunityService {
             opportunities.push(opportunity);
         }
 
-        const existingOpenOpportunities =
-            await this.prisma.revenueOpportunity.findMany({
-                where: {
-                    type: 'OVERDUE_INVOICE',
-                    status: 'OPEN',
-                    invoice: {
-                        businessId,
-                    },
+        const existingOpenOpportunities = await this.prisma.revenueOpportunity.findMany({
+            where: {
+                type: 'OVERDUE_INVOICE',
+                status: 'OPEN',
+                invoice: {
+                    businessId,
                 },
-                select: {
-                    id: true,
-                    invoiceId: true,
-                },
-            });
+            },
+            select: {
+                id: true,
+                invoiceId: true,
+            },
+        });
 
         const staleOpportunityIds = existingOpenOpportunities
-            .filter(
-                (opportunity) => !eligibleInvoiceIds.has(opportunity.invoiceId),
-            )
+            .filter((opportunity) => !eligibleInvoiceIds.has(opportunity.invoiceId))
             .map((opportunity) => opportunity.id);
 
         if (staleOpportunityIds.length > 0) {

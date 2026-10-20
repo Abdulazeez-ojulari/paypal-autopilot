@@ -19,13 +19,13 @@ export class AiController {
     async analyzeRevenue(
         @Param('businessId') businessId: string,
     ) {
-        const revenue =  await this.revenueService.getOpportunities(businessId);
+        const revenue =  await this.revenueService.analyzeBusiness(businessId);
         const analysis = await this.aiService.analyzeRevenue(revenue as any);
 
         const run = await this.aiRunService.recordRun(
             businessId,
             revenue,
-            analysis,
+            analysis
         );
 
         return {

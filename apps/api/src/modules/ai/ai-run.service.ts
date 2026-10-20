@@ -1,8 +1,9 @@
 
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { RevenueAgentResponse } from './ai.types';
 import { PolicyEngineService } from './policy-engine.service';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class AiRunService {
@@ -20,22 +21,43 @@ export class AiRunService {
             opportunities: Array<{
                 invoiceId: string;
                 recommendedAction: string;
+                outstandingAmount: Prisma.Decimal;
+                estimatedRecovery: Prisma.Decimal;
             }>;
         },
         analysis: RevenueAgentResponse,
     ) {
-        const provider = (process.env.AI_PROVIDER ?? 'ollama').toLowerCase();
+        const provider = (
+            process.env.AI_PROVIDER ?? 'ollama'
+        ).toLowerCase();
+
         const model = process.env.AI_MODEL ?? (provider === 'openai' ? 'gpt-4.1-mini' : 'qwen3:8b');
 
         const opportunitiesByInvoice = new Map(
-            revenue.opportunities.map(opportunity => [ opportunity.invoiceId, opportunity ]),
+            revenue.opportunities.map((opportunity) => [
+                opportunity.invoiceId,
+                opportunity,
+            ]),
         );
 
-        const decisions = analysis.decisions.map(decision => {
-            const opportunity = opportunitiesByInvoice.get(decision.invoiceId);
+        const decisions = analysis.decisions.map((decision) => {
+            const opportunity = opportunitiesByInvoice.get(
+                decision.invoiceId,
+            );
 
             if (!opportunity) {
-                throw new Error(`No revenue opportunity found for ${decision.invoiceId}`);
+                throw new BadRequestException(`No revenue opportunity found for ${decision.invoiceId}`);
+            }
+
+            const outstanding = Number(opportunity.outstandingAmount);
+            const recovery = Number(decision.estimatedRecovery);
+
+            if (
+                !Number.isFinite(outstanding) ||
+                !Number.isFinite(recovery) ||
+                outstanding <= 0 || recovery < 0 ||  recovery > outstanding
+            ) {
+                throw new BadRequestException(`Invalid recovery estimate for invoice ${decision.invoiceId}`);
             }
 
             const policy = this.policyEngine.evaluate(decision);
@@ -51,27 +73,46 @@ export class AiRunService {
             };
         });
 
-        return this.prisma.$transaction(async tx => {
+        const totalOutstanding = revenue.opportunities.reduce(
+            (sum, opportunity) => sum + Number(opportunity.outstandingAmount),
+            0
+        );
+
+        const estimatedRecovery = revenue.opportunities.reduce(
+            (sum, opportunity) => sum + Number(opportunity.estimatedRecovery),
+            0,
+        );
+
+        if (
+            !Number.isFinite(totalOutstanding) || !Number.isFinite(estimatedRecovery)
+        ) {
+            throw new BadRequestException('Revenue totals contain invalid monetary values');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
             const run = await tx.aiRun.create({
                 data: {
                     businessId,
                     provider,
                     model,
                     status: 'COMPLETED',
-                    invoiceCount: revenue.invoiceCount,
-                    totalOutstanding: revenue.totalOutstanding,
-                    estimatedRecovery: revenue.estimatedRecovery,
-                    summary: analysis.summary
+                    invoiceCount: revenue.opportunities.length,
+                    totalOutstanding: Number(totalOutstanding.toFixed(2)),
+                    estimatedRecovery: Number(estimatedRecovery.toFixed(2)),
+                    summary: analysis.summary,
                 },
             });
 
             await tx.aiDecision.createMany({
-                data: decisions.map(decision => ({ aiRunId: run.id, ...decision })),
+                data: decisions.map((decision) => ({
+                    aiRunId: run.id,
+                    ...decision,
+                })),
             });
 
             return {
                 ...run,
-                decisions: decisions.map(decision => ({
+                decisions: decisions.map((decision) => ({
                     ...decision,
                     estimatedRecovery: Number(decision.estimatedRecovery),
                 })),
