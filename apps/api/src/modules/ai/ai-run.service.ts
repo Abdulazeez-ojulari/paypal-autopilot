@@ -1,9 +1,9 @@
 
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../../prisma.service';
 import { RevenueAgentResponse } from './ai.types';
 import { PolicyEngineService } from './policy-engine.service';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '../../../generated/prisma/client';
 
 @Injectable()
 export class AiRunService {
