@@ -154,12 +154,18 @@ describe('PaypalWebhookService', () => {
 
         expect(invoiceSyncService.sync).toHaveBeenCalledWith('paypal-invoice-1');
 
-        expect(prisma.paypalWebhookEvent.update).toHaveBeenCalledWith(
+        expect(prisma.paypalWebhookEvent.updateMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { eventId: 'event-1' },
+                where: expect.objectContaining({
+                    eventId: 'event-1',
+                    processed: false,
+                    processing: true,
+                    processingToken: expect.any(String),
+                }),
                 data: expect.objectContaining({
                     processed: true,
                     processing: false,
+                    processingToken: null,
                     processedAt: expect.any(Date),
                 }),
             }),
@@ -175,7 +181,20 @@ describe('PaypalWebhookService', () => {
             service.handleWebhook(headers, event()),
         ).rejects.toThrow('PayPal invoice lookup failed');
 
-        expect(prisma.paypalWebhookEvent.update).not.toHaveBeenCalled();
+        expect(prisma.paypalWebhookEvent.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    eventId: 'event-1',
+                    processed: false,
+                    processing: true,
+                    processingToken: expect.any(String),
+                }),
+                data: {
+                    processing: false,
+                    processingToken: null,
+                },
+            }),
+        );
     });
 
     it('records a completed capture and its payment event in a transaction', async () => {
@@ -243,7 +262,154 @@ describe('PaypalWebhookService', () => {
         const result = await service.handleWebhook(headers, noResourceId);
 
         expect(invoiceSyncService.sync).not.toHaveBeenCalled();
-        expect(prisma.paypalWebhookEvent.update).toHaveBeenCalled();
+        expect(prisma.paypalWebhookEvent.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    eventId: 'event-1',
+                    processed: false,
+                    processing: true,
+                    processingToken: expect.any(String),
+                }),
+                data: expect.objectContaining({
+                    processed: true,
+                    processing: false,
+                    processingToken: null,
+                    processedAt: expect.any(Date),
+                }),
+            }),
+        );
         expect(result.duplicate).toBe(false);
+    });
+    
+    it('does not synchronize an already-processed duplicate event', async () => {
+        prisma.paypalWebhookEvent.upsert.mockResolvedValue({
+            id: 'db-event-1',
+            eventId: 'event-1',
+            processed: true,
+            processing: false,
+        });
+
+        const result = await service.handleWebhook(headers, event());
+
+        expect(result).toEqual({
+            received: true,
+            duplicate: true,
+            eventId: 'event-1',
+        });
+        expect(invoiceSyncService.sync).not.toHaveBeenCalled();
+        expect(prisma.paypalWebhookEvent.update).not.toHaveBeenCalled();
+        expect(prisma.paypalWebhookEvent.updateMany).not.toHaveBeenCalled();
+    });
+
+    
+    it('does not process the same event concurrently when another request owns the claim', async () => {
+        
+        let releaseSync!: () => void;
+
+        const syncGate = new Promise<void>((resolve) => {
+            releaseSync = resolve;
+        });
+
+        let claimTaken = false;
+
+        prisma.paypalWebhookEvent.updateMany.mockImplementation(
+            async (args: any) => {
+                // The active owner is allowed to complete its event.
+                if (
+                    args.data?.processed === true &&
+                    typeof args.where?.processingToken === 'string'
+                ) {
+                    return { count: 1 };
+                }
+
+                // Only the owner can release a failed claim.
+                if (
+                    args.data?.processing === false &&
+                    typeof args.where?.processingToken === 'string'
+                ) {
+                    return { count: 1 };
+                }
+
+                // Only the first request obtains the initial claim.
+                if (
+                    args.where?.processing === false &&
+                    args.data?.processing === true &&
+                    !claimTaken
+                ) {
+                    claimTaken = true;
+                    return { count: 1 };
+                }
+
+                // The concurrent request cannot claim or recover the event.
+                return { count: 0 };
+            },
+        );
+
+        prisma.paypalWebhookEvent.findUnique.mockResolvedValue({
+            id: 'db-event-1',
+            eventId: 'event-1',
+            processed: false,
+            processing: true,
+        });
+
+        invoiceSyncService.sync.mockReturnValueOnce(syncGate);
+
+        const firstRequest = service.handleWebhook(headers, event());
+
+        while (invoiceSyncService.sync.mock.calls.length === 0) {
+            await new Promise((resolve) => setImmediate(resolve));
+        }
+
+        const secondResult = await service.handleWebhook(headers, event());
+
+        expect(secondResult).toEqual({
+            received: true,
+            duplicate: true,
+            processing: true,
+            eventId: 'event-1'
+        });
+        expect(invoiceSyncService.sync).toHaveBeenCalledTimes(1);
+
+        releaseSync();
+        await expect(firstRequest).resolves.toEqual({
+            received: true,
+            duplicate: false,
+            eventId: 'event-1',
+        });
+    });
+
+
+    it('releases a failed claim and allows a subsequent delivery to retry', async () => {
+        invoiceSyncService.sync
+            .mockRejectedValueOnce(new Error('Temporary PayPal API failure'))
+            .mockResolvedValueOnce({ synchronized: true, localStatus: 'PAID' });
+
+        await expect(
+            service.handleWebhook(headers, event()),
+        ).rejects.toThrow('Temporary PayPal API failure');
+
+        expect(prisma.paypalWebhookEvent.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    eventId: 'event-1',
+                    processed: false,
+                    processing: true,
+                    processingToken: expect.any(String),
+                },
+                data: {
+                    processing: false,
+                    processingToken: null,
+                },
+            }),
+        );
+
+        const retryResult = await service.handleWebhook(headers, event());
+
+        expect(retryResult).toEqual({
+            received: true,
+            duplicate: false,
+            eventId: 'event-1',
+        });
+        expect(invoiceSyncService.sync).toHaveBeenCalledTimes(2);
     });
 });

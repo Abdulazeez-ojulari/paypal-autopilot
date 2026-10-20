@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma.service';
 import { PaypalClient } from './paypal.client';
 import { PaypalWebhookEvent, PaypalWebhookResource } from './paypal.webhook.types';
 import { PaypalInvoiceSyncService } from './paypal-invoice-sync.service';
+import { randomUUID } from 'node:crypto';
 
 type CaptureStatus = 'COMPLETED' | 'PENDING' | 'DENIED' | 'REFUNDED';
 
@@ -59,7 +60,8 @@ export class PaypalWebhookService {
             };
         }
 
-        const claimed = await this.claimEvent(event.id);
+        const processingToken = randomUUID();
+        const claimed = await this.claimEvent(event.id, processingToken);
 
         if (!claimed) {
             const current = await this.prisma.paypalWebhookEvent.findUnique({
@@ -85,14 +87,24 @@ export class PaypalWebhookService {
         try {
             await this.processEvent(event);
 
-            await this.prisma.paypalWebhookEvent.update({
-                where: { eventId: event.id },
+            const completed = await this.prisma.paypalWebhookEvent.updateMany({
+                where: {
+                    eventId: event.id,
+                    processed: false,
+                    processing: true,
+                    processingToken,
+                },
                 data: {
                     processed: true,
                     processing: false,
+                    processingToken: null,
                     processedAt: new Date(),
                 },
             });
+
+            if (completed.count !== 1) {
+                throw new Error(`Lost processing ownership for PayPal webhook ${event.id}.`);
+            }
 
             return {
                 received: true,
@@ -104,9 +116,12 @@ export class PaypalWebhookService {
                 where: {
                     eventId: event.id,
                     processed: false,
+                    processing: true,
+                    processingToken,
                 },
                 data: {
                     processing: false,
+                    processingToken: null,
                 },
             });
 
@@ -119,19 +134,23 @@ export class PaypalWebhookService {
         }
     }
 
-    private async claimEvent(eventId: string): Promise<boolean> {
+    private async claimEvent(
+        eventId: string,
+        processingToken: string,
+    ): Promise<boolean> {
         const claimed = await this.prisma.paypalWebhookEvent.updateMany({
             where: {
                 eventId,
                 processed: false,
-                processing: false
+                processing: false,
             },
             data: {
                 processing: true,
+                processingToken,
             },
         });
 
-        if (claimed.count > 0) {
+        if (claimed.count === 1) {
             return true;
         }
 
@@ -146,10 +165,11 @@ export class PaypalWebhookService {
             },
             data: {
                 processing: true,
+                processingToken,
             },
         });
 
-        return recovered.count > 0;
+        return recovered.count === 1;
     }
 
     private async processEvent(event: PaypalWebhookEvent): Promise<void> {
