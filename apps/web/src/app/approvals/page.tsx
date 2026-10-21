@@ -13,12 +13,13 @@ interface ExecutionCheck {
         id: string;
         invoiceNumber: string | null;
         amount: string;
-        paidAmount: unknown;
+        paidAmount: string | number | null;
         currencyCode: string;
         dueAt: string | null;
         status: string;
     };
-    standingAmount: string;
+    outstandingAmount?: string;
+    standingAmount?: string;
     action: string;
     eligibleForExecution: boolean;
     executed: boolean;
@@ -30,14 +31,16 @@ function displayValue(
     keys: string[],
 ): string {
     const record = item as Record<string, unknown>;
-    const decision =
-        record.decision && typeof record.decision === "object"
+
+    const decision = record.decision && typeof record.decision === "object"
         ? (record.decision as Record<string, unknown>) : {};
 
     for (const key of keys) {
-        const value = record[key] ?? decision[key];
+        const value = key === "decision" ? decision.decision ?? record.decision : record[key] ?? decision[key];
 
-        if (value !== undefined && value !== null && value !== "") {
+        if (
+            value !== undefined && value !== null && value !== "" && typeof value !== "object"
+        ) {
             return String(value);
         }
     }
@@ -218,10 +221,11 @@ export default function ApprovalsPage() {
     }
 
     async function checkExecutionEligibility(approvalId: string) {
-        const businessId = localStorage.getItem("pa_business_id");
+        const selectedBusinessId = localStorage.getItem("pa_business_id");
+        const token = localStorage.getItem("pa_access_token");
 
-        if (!businessId) {
-            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "Select a business before checking execution." }));
+        if (!selectedBusinessId || !token) {
+            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "Your session or business workspace is missing. Please sign in again." }));
             return;
         }
 
@@ -236,13 +240,15 @@ export default function ApprovalsPage() {
 
         try {
             const result = await apiRequest<ExecutionCheck>(
-                `/approvals/businesses/${businessId}/${approvalId}/execution-check`,
-                { method: "GET" }
+                `/approvals/businesses/${selectedBusinessId}/${approvalId}/execution-check`,
+                { method: "GET" },
+                token,
             );
 
             setExecutionChecks((current) => ({ ...current, [approvalId]: result }));
         } catch (error) {
             const message = error instanceof Error ? error.message : "Unable to verify execution eligibility.";
+
             setExecutionCheckErrors((current) => ({ ...current, [approvalId]: message }));
         } finally {
             setCheckingExecution((current) => ({ ...current, [approvalId]: false }));
@@ -327,16 +333,32 @@ export default function ApprovalsPage() {
                 ) : (
                     approvals.map((approval, index) => {
                         const status = displayValue(approval, ["status"]);
-                        const executionStatus = displayValue(approval, [ "executionStatus" ]);
-                        const action = displayValue(approval, [ "action", "type", "recommendationType" ]);
+                        const executionStatus = displayValue(approval, ["executionStatus"]);
+
+                        const action = displayValue(approval, [ "action", "decision", "type", "recommendationType" ]);
+
                         const isApproved = status.toUpperCase() === "APPROVED";
                         const isRejected = status.toUpperCase() === "REJECTED";
                         const isBusy = busyId === approval.id;
 
                         const isNotStarted = executionStatus.toUpperCase() === "NOT_STARTED";
+
                         const isPaymentRequest = action === "REVIEW_AND_SEND_PAYMENT_REQUEST";
-                        const canExecute = isApproved && isNotStarted && isPaymentRequest;
-                        const canReconcile = isApproved && ["FAILED", "IN_PROGRESS", "SUCCEEDED"].includes(executionStatus.toUpperCase());
+
+                        const eligibility = executionChecks[approval.id];
+
+                        const canExecute =
+                            isApproved &&
+                            isNotStarted &&
+                            isPaymentRequest &&
+                            eligibility?.eligibleForExecution === true &&
+                            eligibility.approvalStatus === "APPROVED" &&
+                            eligibility.executionStatus === "NOT_STARTED" &&
+                            eligibility.executed === false;
+
+                        const canReconcile =
+                            isApproved &&
+                            ["FAILED", "IN_PROGRESS", "SUCCEEDED"].includes(executionStatus.toUpperCase());
 
                         return (
                             <article
@@ -483,7 +505,11 @@ export default function ApprovalsPage() {
                                                 <p>
                                                     <strong>Outstanding:</strong>{" "}
                                                     {executionChecks[approval.id].invoice.currencyCode}{" "}
-                                                    {executionChecks[approval.id].standingAmount}
+                                                    {
+                                                        executionChecks[approval.id].outstandingAmount ??
+                                                        executionChecks[approval.id].standingAmount ??
+                                                        "Unavailable"
+                                                    }
                                                 </p>
 
                                                 <p>
