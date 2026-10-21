@@ -42,7 +42,7 @@ export function PayPalCheckout({
         const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
         if (!clientId) {
-            setError('PayPal client ID is not configured.');
+            // setError('PayPal client ID is not configured.');
 
             setLoading(false);
 
@@ -163,25 +163,25 @@ export function PayPalCheckout({
         };
     }, [ amount, currencyCode, description ]);
 
-  return (
-    <div className="w-full">
-        <div ref={containerRef} id="paypal-button-container" />
+    return (
+        <div className="w-full">
+            <div ref={containerRef} id="paypal-button-container" />
 
-        {loading && (
-            <p className="mt-3 text-sm text-gray-500"> Loading PayPal... </p>
-        )}
+            {loading && (
+                <p className="mt-3 text-sm text-gray-500"> Loading PayPal... </p>
+            )}
 
-        {status && (
-            <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm">
-                {status}
-            </div>
-        )}
+            {status && (
+                <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm">
+                    {status}
+                </div>
+            )}
 
-        {error && (
-            <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-                {error}
-            </div>
-        )}
-    </div>
-  );
+            {error && (
+                <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+        </div>
+    );
 }
