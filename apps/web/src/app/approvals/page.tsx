@@ -4,11 +4,38 @@ import { useCallback, useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { Approval, apiRequest, unwrapArray } from "@/lib/api";
 
-function displayValue(item: Approval, keys: string[]): string {
+interface ExecutionCheck {
+    approvalId: string;
+    approvalStatus: string;
+    executionStatus: string;
+    businessId: string;
+    invoice: {
+        id: string;
+        invoiceNumber: string | null;
+        amount: string;
+        paidAmount: unknown;
+        currencyCode: string;
+        dueAt: string | null;
+        status: string;
+    };
+    standingAmount: string;
+    action: string;
+    eligibleForExecution: boolean;
+    executed: boolean;
+    nextStep: string;
+}
+
+function displayValue(
+    item: Approval,
+    keys: string[],
+): string {
     const record = item as Record<string, unknown>;
+    const decision =
+        record.decision && typeof record.decision === "object"
+        ? (record.decision as Record<string, unknown>) : {};
 
     for (const key of keys) {
-        const value = record[key];
+        const value = record[key] ?? decision[key];
 
         if (value !== undefined && value !== null && value !== "") {
             return String(value);
@@ -27,6 +54,9 @@ export default function ApprovalsPage() {
     const [notice, setNotice] = useState("");
     const [rejectingId, setRejectingId] = useState("");
     const [reason, setReason] = useState("");
+    const [executionChecks, setExecutionChecks] = useState<Record<string, ExecutionCheck>>({});
+    const [checkingExecution, setCheckingExecution] = useState<Record<string, boolean>>({});
+    const [executionCheckErrors, setExecutionCheckErrors] = useState<Record<string, string>>({});
 
     const loadApprovals = useCallback(async (id: string) => {
         const token = localStorage.getItem("pa_access_token");
@@ -104,12 +134,55 @@ export default function ApprovalsPage() {
 
             await loadApprovals(businessId);
 
-            if (
-                result && typeof result === "object" &&
-                "message" in result &&
-                typeof (result as { message?: unknown }).message === "string"
-            ) {
-                setNotice((result as { message: string }).message);
+            const response = result && typeof result === "object" ? (result as Record<string, unknown>) : {};
+
+            setApprovals((current) => {
+                const updated = current.map((item) => {
+                    if (item.id !== approvalId) return item;
+
+                    const changes: Record<string, unknown> = {};
+
+                    if (action === "approve") {
+                        changes.status = "APPROVED";
+                    }
+
+                    if (action === "reject") {
+                        changes.status = "REJECTED";
+                        changes.rejectionReason = rejectionReason;
+                    }
+
+                    if (action === "execute" || action === "reconcile") {
+                        if (typeof response.status === "string") {
+                            changes.status = response.status;
+                        }
+
+                        if (typeof response.executionStatus === "string") {
+                            changes.executionStatus = response.executionStatus;
+                        }
+
+                        if (typeof response.paypalInvoiceId === "string") {
+                            changes.paypalInvoiceId = response.paypalInvoiceId;
+                        }
+                    }
+
+                    return { ...item, ...changes } as Approval;
+                });
+
+                return updated;
+            });
+
+            if (action === "approve") {
+                setNotice("Approval recorded. Review the approved request before execution.");
+            } else if (action === "reject") {
+                setNotice("Approval rejected.");
+                setRejectingId("");
+                setReason("");
+            } else {
+                setNotice(
+                    typeof response.message === "string"
+                    ? response.message
+                    : "The request returned. Verify its execution status before proceeding.",
+                );
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : `Could not ${action} this approval.`);
@@ -141,6 +214,38 @@ export default function ApprovalsPage() {
             setError(err instanceof Error ? err.message : "Could not initialize pending approvals.");
         } finally {
             setBusyId("");
+        }
+    }
+
+    async function checkExecutionEligibility(approvalId: string) {
+        const businessId = localStorage.getItem("pa_business_id");
+
+        if (!businessId) {
+            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "Select a business before checking execution." }));
+            return;
+        }
+
+        setCheckingExecution((current) => ({ ...current, [approvalId]: true }))
+        setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "" }));
+
+        setExecutionChecks((current) => {
+            const next = { ...current };
+            delete next[approvalId];
+            return next;
+        });
+
+        try {
+            const result = await apiRequest<ExecutionCheck>(
+                `/approvals/businesses/${businessId}/${approvalId}/execution-check`,
+                { method: "GET" }
+            );
+
+            setExecutionChecks((current) => ({ ...current, [approvalId]: result }));
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to verify execution eligibility.";
+            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: message }));
+        } finally {
+            setCheckingExecution((current) => ({ ...current, [approvalId]: false }));
         }
     }
 
@@ -228,6 +333,11 @@ export default function ApprovalsPage() {
                         const isRejected = status.toUpperCase() === "REJECTED";
                         const isBusy = busyId === approval.id;
 
+                        const isNotStarted = executionStatus.toUpperCase() === "NOT_STARTED";
+                        const isPaymentRequest = action === "REVIEW_AND_SEND_PAYMENT_REQUEST";
+                        const canExecute = isApproved && isNotStarted && isPaymentRequest;
+                        const canReconcile = isApproved && ["FAILED", "IN_PROGRESS", "SUCCEEDED"].includes(executionStatus.toUpperCase());
+
                         return (
                             <article
                                 key={approval.id || index}
@@ -296,33 +406,104 @@ export default function ApprovalsPage() {
                                             </>
                                         )}
 
-                                        {isApproved && (
+                                        {canExecute && (
                                             <button
-                                                onClick={() =>
-                                                    void performAction(approval.id, "execute")
-                                                }
-                                                disabled={isBusy || busyId !== ""}
+                                                onClick={() => {
+                                                    const confirmed = window.confirm("Execute this approved payment request through PayPal?");
+
+                                                    if (confirmed) {
+                                                        void performAction(approval.id, "execute");
+                                                    }
+                                                }}
+                                                disabled={busyId !== ""}
                                                 className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                                             >
-                                                {isBusy ? "Working..." : "Execute approved request"}
+                                                Execute approved request
                                             </button>
                                         )}
 
-                                        {isApproved &&
-                                            ["FAILED", "IN_PROGRESS"].includes(
-                                                executionStatus.toUpperCase()
-                                            ) && (
-                                                <button
-                                                    onClick={() =>
-                                                        void performAction(approval.id, "reconcile")
+                                        {canReconcile && (
+                                            <button
+                                                onClick={() => {
+                                                    const confirmed = window.confirm("Check this execution against PayPal before taking further action?");
+
+                                                    if (confirmed) {
+                                                        void performAction(approval.id, "reconcile");
                                                     }
-                                                    disabled={isBusy || busyId !== ""}
-                                                    className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                                                >
-                                                    Reconcile
-                                                </button>
-                                            )
-                                        }
+                                                }}
+                                                disabled={busyId !== ""}
+                                                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                            >
+                                                Reconcile with PayPal
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                                        <h3 className="font-semibold text-slate-900">
+                                            Execution eligibility
+                                        </h3>
+
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            Check the current approval and invoice state before sending a
+                                            payment request.
+                                        </p>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => checkExecutionEligibility(approval.id)}
+                                            disabled={checkingExecution[approval.id]}
+                                            className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {checkingExecution[approval.id] ? "Checking..." : "Check execution eligibility"}
+                                        </button>
+
+                                        {executionCheckErrors[approval.id] && (
+                                            <p className="mt-3 text-sm text-red-700" role="alert">
+                                                {executionCheckErrors[approval.id]}
+                                            </p>
+                                        )}
+
+                                        {executionChecks[approval.id] && (
+                                            <div className="mt-4 space-y-2 text-sm text-slate-700">
+                                                <p>
+                                                    <strong>Eligible:</strong>{" "}
+                                                    {executionChecks[approval.id].eligibleForExecution ? "Yes" : "No"}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Invoice:</strong>{" "}
+                                                    {executionChecks[approval.id].invoice.invoiceNumber ?? executionChecks[approval.id].invoice.id}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Invoice status:</strong>{" "}
+                                                    {executionChecks[approval.id].invoice.status}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Outstanding:</strong>{" "}
+                                                    {executionChecks[approval.id].invoice.currencyCode}{" "}
+                                                    {executionChecks[approval.id].standingAmount}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Action:</strong>{" "}
+                                                    {executionChecks[approval.id].action}
+                                                </p>
+
+                                                <p>
+                                                    <strong>Execution state:</strong>{" "}
+                                                    {executionChecks[approval.id].executionStatus}
+                                                </p>
+
+                                                {executionChecks[approval.id].eligibleForExecution && (
+                                                    <p className="text-emerald-700">
+                                                        Eligibility confirmed. You can proceed to the explicit
+                                                        execution confirmation.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

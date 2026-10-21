@@ -270,44 +270,65 @@ export default function DashboardPage() {
                     <table className="w-full min-w-[680px] text-left text-sm">
                         <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
-                                <th className="px-5 py-3 font-semibold">Invoice / ID</th>
-                                <th className="px-5 py-3 font-semibold">Type</th>
-                                <th className="px-5 py-3 font-semibold">Status</th>
-                                <th className="px-5 py-3 font-semibold">Risk</th>
-                                <th className="px-5 py-3 text-right font-semibold">
-                                    Amount
-                                </th>
+                                <th className="px-5 py-3 font-semibold">Invoice</th>
+                                <th className="px-5 py-3 font-semibold">Recommended action</th>
+                                <th className="px-5 py-3 font-semibold">Priority</th>
+                                <th className="px-5 py-3 font-semibold">Confidence</th>
+                                <th className="px-5 py-3 text-right font-semibold">Outstanding</th>
+                                <th className="px-5 py-3 text-right font-semibold">Est. recovery</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {opportunities.map((item, index) => {
-                            const record = item as Record<string, unknown>;
+                                const record = item as Record<string, unknown>;
 
-                            return (
-                                <tr
-                                    key={item.id || `${item.invoiceId}-${index}`}
-                                    className="hover:bg-slate-50"
-                                >
-                                    <td className="max-w-56 truncate px-5 py-4 font-medium">
-                                        {getText(record, ["invoiceId", "id"])}
-                                    </td>
-                                    <td className="px-5 py-4 text-slate-600">
-                                        {getText(record, ["type", "recommendedAction"])}
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        {getText(record, ["status"])}
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        {getText(record, ["riskLevel", "risk"])}
-                                    </td>
-                                    <td className="px-5 py-4 text-right font-semibold tabular-nums">
-                                        {formatMoney(
-                                            getAmount(record, [ "outstandingAmount", "amountOutstanding", "amount" ]),
-                                            currency,
-                                        )}
-                                    </td>
-                                </tr>
-                            );
+                                const confidence = Number(record.confidence);
+                                const confidenceLabel = Number.isFinite(confidence)
+                                ? `${confidence <= 1 ? (confidence * 100).toFixed(0) : confidence.toFixed(0)}%`
+                                : "—";
+
+                                const priority = getText(record, ["priority"]);
+                                const action = getText(record, ["recommendedAction", "type"]);
+                                const reason = getText(record, ["reason"]);
+
+                                return (
+                                    <tr
+                                        key={item.id || `${item.invoiceId}-${index}`}
+                                        className="align-top hover:bg-slate-50"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <p className="max-w-44 break-all font-medium">
+                                                {getText(record, ["invoiceId"])}
+                                            </p>
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                {getText(record, ["status"])}
+                                            </p>
+                                        </td>
+
+                                        <td className="max-w-72 px-5 py-4">
+                                            <p className="font-medium text-slate-800">{action}</p>
+                                            <p className="mt-1 whitespace-normal text-xs leading-5 text-slate-500">
+                                                {reason}
+                                            </p>
+                                        </td>
+
+                                        <td className="px-5 py-4">
+                                            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                                {priority}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-5 py-4 tabular-nums">{confidenceLabel}</td>
+
+                                        <td className="px-5 py-4 text-right font-semibold tabular-nums">
+                                            {formatMoney(getAmount(record, ["outstandingAmount"]), currency)}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-right font-semibold tabular-nums">
+                                            {formatMoney(getAmount(record, ["estimatedRecovery"]), currency)}
+                                        </td>
+                                    </tr>
+                                );
                             })}
                         </tbody>
                     </table>
