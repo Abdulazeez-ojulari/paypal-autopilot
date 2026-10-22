@@ -1,7 +1,7 @@
 
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { PaypalInvoicingService } from './paypal-invoicing.service';
 
 @Injectable()
@@ -20,6 +20,13 @@ export class ExecutionService {
         if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
             throw new ForbiddenException('Owner or administrator access required.');
         }
+    }
+
+    private idempotencyKey(approvalId: string, operation: string): string {
+        return `pa-${createHash('sha256')
+            .update(`${approvalId}:${operation}`)
+            .digest('hex')
+            .slice(0, 32)}`;
     }
 
     async checkEligibility(
@@ -85,7 +92,13 @@ export class ExecutionService {
             throw new NotFoundException('The invoice does not exist in this business.');
         }
 
-        if (invoice.status !== 'OVERDUE' || invoice.paidAt !== null) {
+        const now = new Date();
+
+        const eligibleStatus =
+            invoice.status === 'OVERDUE' ||
+            (invoice.status === 'PARTIALLY_PAID' && invoice.dueAt.getTime() <= now.getTime());
+
+        if (!eligibleStatus || invoice.paidAt !== null) {
             throw new BadRequestException('The invoice is no longer eligible for overdue-invoice recovery.');
         }
 
@@ -119,7 +132,7 @@ export class ExecutionService {
                 dueAt: invoice.dueAt,
                 status: invoice.status,
             },
-            standingAmount: outstandingAmount.toFixed(2),
+            outstandingAmount: outstandingAmount.toFixed(2),
             action: approval.decision.decision,
             eligibleForExecution: true,
             executed: false,
@@ -135,6 +148,8 @@ export class ExecutionService {
         await this.checkEligibility(userId, businessId, approvalId);
 
         const attemptKey = randomUUID();
+        const createKey = this.idempotencyKey(approvalId, 'create-invoice');
+        const sendKey = this.idempotencyKey(approvalId, 'send-invoice');
 
         const claim = await this.prisma.humanApproval.updateMany({
             where: {
@@ -190,9 +205,17 @@ export class ExecutionService {
                 },
             });
 
-            if (
-                !invoice || invoice.status !== 'OVERDUE' || invoice.paidAt !== null
-            ) {
+            if (!invoice) {
+                throw new NotFoundException('The invoice does not exist in this business.');
+            }
+
+            const now = new Date();
+
+            const eligibleStatus =
+                invoice.status === 'OVERDUE' ||
+                (invoice.status === 'PARTIALLY_PAID' && invoice.dueAt.getTime() <= now.getTime());
+
+            if (!eligibleStatus || invoice.paidAt !== null) {
                 throw new Error('Invoice is no longer eligible for recovery.');
             }
 
@@ -212,12 +235,13 @@ export class ExecutionService {
 
             let paypalInvoiceId = approval.paypalInvoiceId;
             let stageResult: any;
+            let createdInThisAttempt = false;
 
             if (!paypalInvoiceId) {
                 stage = 'CREATE_PAYPAL_DRAFT';
 
                 const draft = await this.paypalInvoicing.createDraftInvoice({
-                    attemptKey,
+                    attemptKey: createKey,
                     localInvoiceId: invoice.id,
                     invoiceNumber: invoice.invoiceNumber,
                     amount: outstandingAmount.toFixed(2),
@@ -227,6 +251,7 @@ export class ExecutionService {
                 });
 
                 paypalInvoiceId = draft.id;
+                createdInThisAttempt = true;
 
                 await this.prisma.humanApproval.update({
                     where: { id: approvalId },
@@ -236,14 +261,20 @@ export class ExecutionService {
                             stage: 'DRAFT_CREATED',
                             paypalInvoiceId,
                             paypalStatus: draft.status ?? 'DRAFT',
+                            requestedAmount: outstandingAmount.toFixed(2),
+                            currencyCode: invoice.currencyCode,
                         },
                     },
                 });
             }
 
+            if (!createdInThisAttempt) {
+                throw new ConflictException('Existing PayPal invoice requires reconciliation before sending.');
+            }
+
             stage = 'SEND_PAYPAL_INVOICE';
 
-            const sent = await this.paypalInvoicing.sendInvoice(paypalInvoiceId, attemptKey);
+            const sent = await this.paypalInvoicing.sendInvoice(paypalInvoiceId, sendKey);
 
             stageResult = {
                 stage: 'INVOICE_SEND_ACCEPTED',
@@ -252,6 +283,8 @@ export class ExecutionService {
                 accepted: sent.accepted,
                 localInvoiceId: invoice.id,
                 invoiceNumber: invoice.invoiceNumber,
+                requestedAmount: outstandingAmount.toFixed(2),
+                currencyCode: invoice.currencyCode,
             };
 
             const updated = await this.prisma.humanApproval.updateMany({
@@ -307,7 +340,7 @@ export class ExecutionService {
     async reconcile(
         userId: string,
         businessId: string,
-        approvalId: string,
+        approvalId: string
     ) {
         await this.ensureApprover(userId, businessId);
 
@@ -315,7 +348,9 @@ export class ExecutionService {
             where: { id: approvalId, businessId },
             include: {
                 decision: {
-                    include: { run: { select: { businessId: true } } },
+                    include: {
+                        run: { select: { businessId: true } },
+                    },
                 },
             },
         });
@@ -336,7 +371,11 @@ export class ExecutionService {
             throw new ConflictException('No PayPal invoice ID is saved. The draft-creation outcome is unknown; investigate PayPal before creating another invoice.');
         }
 
-        if (!['IN_PROGRESS', 'FAILED', 'SUCCEEDED'].includes(approval.executionStatus)) {
+        const allowedStates = ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'] as const;
+
+        if (
+            !allowedStates.includes(approval.executionStatus as (typeof allowedStates)[number])
+        ) {
             throw new ConflictException(`Cannot reconcile execution in state ${approval.executionStatus}.`);
         }
 
@@ -372,10 +411,64 @@ export class ExecutionService {
             !expectedEmail ||
             externalEmail !== expectedEmail
         ) {
-            throw new ConflictException('PayPal invoice details do not match the local invoice. No automatic recovery was performed.');
+            throw new ConflictException('PayPal invoice identity, reference, currency, or customer does not match the local invoice. No automatic recovery was performed.');
         }
 
-        const status = external.status.toUpperCase();
+        const savedResult =
+            approval.executionResult &&
+            typeof approval.executionResult === 'object' &&
+            !Array.isArray(approval.executionResult) ? (approval.executionResult as Record<string, unknown>) : {};
+
+        const savedRequestedAmount = savedResult.requestedAmount;
+        const savedRequestedCurrency = savedResult.currencyCode;
+
+        const localOutstandingAmount = Number((Number(invoice.amount) - Number(invoice.paidAmount ?? 0)).toFixed(2));
+        const hasSavedRequestedAmount = savedRequestedAmount !== undefined && savedRequestedAmount !== null && savedRequestedAmount !== '';
+        const requestedAmount = hasSavedRequestedAmount ? Number(savedRequestedAmount) : localOutstandingAmount;
+        const requestedCurrency = typeof savedRequestedCurrency === 'string' ? savedRequestedCurrency : invoice.currencyCode;
+
+        if (
+            !Number.isFinite(localOutstandingAmount) ||
+            localOutstandingAmount < 0 ||
+            !Number.isFinite(requestedAmount) ||
+            requestedAmount <= 0 ||
+            requestedCurrency !== invoice.currencyCode
+        ) {
+            throw new ConflictException('The requested amount or currency cannot be verified. Manual review is required.');
+        }
+
+        const externalCurrency = external.amount?.currency_code;
+        const externalTotal = Number(external.amount?.value);
+
+        const paidAmountData = external.payments?.paid_amount;
+        const externalPaidAmount = Number(paidAmountData?.value ?? '0');
+        const paidCurrency = paidAmountData?.currency_code;
+
+        if (
+            externalCurrency !== requestedCurrency ||
+            !Number.isFinite(externalTotal) ||
+            externalTotal <= 0 ||
+            !Number.isFinite(externalPaidAmount) ||
+            externalPaidAmount < 0 ||
+            externalPaidAmount > externalTotal ||
+            (paidCurrency !== undefined && paidCurrency !== requestedCurrency)
+        ) {
+            throw new ConflictException('PayPal returned invalid or inconsistent invoice amount data. No execution state was changed.');
+        }
+
+        const normalizedExternalTotal = Number(externalTotal.toFixed(2));
+        const normalizedRequestedAmount = Number(requestedAmount.toFixed(2));
+
+        if (normalizedExternalTotal !== normalizedRequestedAmount) {
+            throw new ConflictException('The PayPal invoice total differs from the recorded requested amount. Manual review is required.');
+        }
+
+        const status = external.status?.toUpperCase();
+
+        if (!status) {
+            throw new ConflictException('PayPal returned no invoice status. Execution state is unchanged.');
+        }
+
         const sentOrFurther = [
             'SENT',
             'UNPAID',
@@ -384,24 +477,28 @@ export class ExecutionService {
             'MARKED_AS_PAID',
         ].includes(status);
 
+        const reconciledAt = new Date().toISOString();
+
         if (sentOrFurther) {
             const result = await this.prisma.humanApproval.updateMany({
                 where: {
                     id: approvalId,
                     businessId,
+                    status: 'APPROVED',
                     paypalInvoiceId: external.id,
-                    executionStatus: {
-                        in: ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'],
-                    },
+                    executionStatus: approval.executionStatus,
                 },
                 data: {
                     executionStatus: 'SUCCEEDED',
                     executionResult: {
+                        ...savedResult,
                         stage: 'RECONCILED_WITH_PAYPAL',
                         paypalInvoiceId: external.id,
                         paypalStatus: status,
-                        reconciledAt: new Date().toISOString(),
-                        note: 'PayPal confirms the invoice progressed beyond draft status.',
+                        requestedAmount: normalizedRequestedAmount.toFixed(2),
+                        currencyCode: requestedCurrency,
+                        reconciledAt,
+                        note: 'PayPal confirms the invoice progressed beyond draft status. This does not itself confirm payment receipt.',
                     },
                     executedAt: approval.executedAt ?? new Date(),
                 },
@@ -417,30 +514,40 @@ export class ExecutionService {
                 paypalInvoiceId: external.id,
                 paypalStatus: status,
                 reconciled: true,
-                note: 'PayPal confirms the invoice is no longer a draft. This does not itself update the local invoice payment status.',
+                paymentReceived: ['PAID', 'MARKED_AS_PAID'].includes(status),
+                note: 'PayPal confirms the invoice progressed beyond draft status. The local invoice payment status must be synchronized separately.',
             };
         }
 
         const result = {
+            ...savedResult,
             stage: 'RECONCILIATION_REQUIRES_REVIEW',
             paypalInvoiceId: external.id,
             paypalStatus: status,
-            reconciledAt: new Date().toISOString(),
-            note:
-            status === 'DRAFT'
-                ? 'PayPal still reports a draft. A separately controlled send retry may be appropriate after reviewing the execution attempt.'
-                : 'The PayPal invoice state does not confirm successful sending.',
+            requestedAmount: normalizedRequestedAmount.toFixed(2),
+            currencyCode: requestedCurrency,
+            reconciledAt,
+            note: status === 'DRAFT'
+                ? 'PayPal still reports a draft. Do not resend automatically; review the original execution attempt before any retry.'
+                : 'PayPal invoice status does not confirm successful sending. Manual review is required.',
         };
 
-        await this.prisma.humanApproval.updateMany({
+        const updated = await this.prisma.humanApproval.updateMany({
             where: {
                 id: approvalId,
                 businessId,
+                status: 'APPROVED',
                 paypalInvoiceId: external.id,
-                executionStatus: { in: ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'] },
+                executionStatus: approval.executionStatus,
             },
-            data: { executionResult: result },
+            data: {
+                executionResult: result,
+            },
         });
+
+        if (updated.count !== 1) {
+            throw new ConflictException('Execution state changed during reconciliation. Fetch the approval and reconcile again.');
+        }
 
         return {
             approvalId,

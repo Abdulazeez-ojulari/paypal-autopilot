@@ -24,9 +24,16 @@ describe('ExecutionService.reconcile', () => {
         executionStatus: 'FAILED',
         paypalInvoiceId,
         executedAt: null,
+        executionResult: {
+            stage: 'INVOICE_SEND_ACCEPTED',
+            requestedAmount: '100.00',
+            currencyCode: 'USD',
+        },
         decision: {
             invoiceId: localInvoiceId,
             decision: 'REVIEW_AND_SEND_PAYMENT_REQUEST',
+            requiresApproval: true,
+            policyStatus: 'REQUIRES_HUMAN_APPROVAL',
             run: { businessId },
         },
         ...overrides,
@@ -34,6 +41,8 @@ describe('ExecutionService.reconcile', () => {
 
     const localInvoice = () => ({
         id: localInvoiceId,
+        amount: '100.00',
+        paidAmount: '0.00',
         currencyCode: 'USD',
         customer: { email: 'customer@example.com' },
     });
@@ -45,10 +54,20 @@ describe('ExecutionService.reconcile', () => {
             reference: localInvoiceId,
             currency_code: 'USD',
         },
+        amount: {
+            currency_code: 'USD',
+            value: '100.00',
+        },
+        payments: {
+            paid_amount: {
+                currency_code: 'USD',
+                value: '0.00',
+            },
+        },
         primary_recipients: [
             {
                 billing_info: {
-                email_address: 'customer@example.com',
+                    email_address: 'customer@example.com',
                 },
             },
         ],
@@ -89,9 +108,7 @@ describe('ExecutionService.reconcile', () => {
                     id: approvalId,
                     businessId,
                     paypalInvoiceId,
-                    executionStatus: {
-                        in: ['IN_PROGRESS', 'FAILED', 'SUCCEEDED'],
-                    },
+                    executionStatus: 'FAILED',
                 }),
                 data: expect.objectContaining({
                     executionStatus: 'SUCCEEDED',

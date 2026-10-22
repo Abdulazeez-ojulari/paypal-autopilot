@@ -158,9 +158,22 @@ export class PaypalInvoiceSyncService {
                 };
         }
 
-        const data: Prisma.InvoiceUpdateInput = {
-            status: localStatus,
-        };
+        if (!this.canTransitionInvoiceStatus(invoice.status, localStatus)) {
+            this.logger.warn(
+                `Ignoring stale PayPal invoice status ${paypalStatus} for ${invoice.id}; ` +
+                `local status is ${invoice.status}.`,
+            );
+
+            return {
+                synchronized: false,
+                reason: 'Stale invoice status would downgrade local state',
+                localInvoiceId: invoice.id,
+                paypalStatus,
+                localStatus: invoice.status,
+            };
+        }
+
+        const data: Prisma.InvoiceUpdateManyMutationInput = { status: localStatus };
 
         if (nextPaidAmount !== undefined) {
             data.paidAmount = nextPaidAmount;
@@ -170,10 +183,24 @@ export class PaypalInvoiceSyncService {
             data.paidAt = paidAt;
         }
 
-        await this.prisma.invoice.update({
-            where: { id: invoice.id },
+        const updateResult = await this.prisma.invoice.updateMany({
+            where: {
+                id: invoice.id,
+                status: invoice.status,
+            },
             data,
         });
+
+        if (updateResult.count !== 1) {
+            this.logger.warn(`Invoice ${invoice.id} changed during PayPal synchronization; retry required.`);
+
+            return {
+                synchronized: false,
+                reason: 'Local invoice changed during synchronization',
+                localInvoiceId: invoice.id,
+                paypalStatus,
+            };
+        }
 
         this.logger.log(`Invoice ${invoice.id}: PayPal ${paypalStatus} -> local ${localStatus}`);
 
@@ -183,5 +210,39 @@ export class PaypalInvoiceSyncService {
             paypalStatus,
             localStatus,
         };
+    }
+
+    private canTransitionInvoiceStatus(
+        currentStatus: string,
+        nextStatus: string,
+    ): boolean {
+        if (currentStatus === nextStatus) {
+            return true;
+        }
+
+        switch (currentStatus) {
+            case 'PAID':
+                return ['PARTIALLY_REFUNDED', 'REFUNDED'].includes(nextStatus);
+
+            case 'PARTIALLY_PAID':
+                return ['PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'].includes(nextStatus);
+
+            case 'PARTIALLY_REFUNDED':
+                return nextStatus === 'REFUNDED';
+
+            case 'REFUNDED':
+            case 'CANCELLED':
+                return false;
+
+            case 'PAYMENT_PENDING':
+                return !['UNPAID', 'OVERDUE'].includes(nextStatus);
+
+            case 'UNPAID':
+            case 'OVERDUE':
+                return true;
+
+            default:
+                return true;
+        }
     }
 }

@@ -235,6 +235,24 @@ export class PaypalWebhookService {
                 select: { status: true },
             });
 
+            const existingCapture = await tx.paypalCapture.findUnique({
+                where: { paypalCaptureId: captureId },
+                select: { status: true },
+            });
+
+            const shouldApplyStatus = this.canTransitionCaptureStatus(
+                existingCapture?.status,
+                status,
+            );
+
+            if (!shouldApplyStatus) {
+                this.logger.warn(
+                    `Ignoring stale PayPal capture status ${status} for ${captureId}; ` +
+                    `current status is ${existingCapture?.status}.`,
+                );
+                return;
+            }
+
             await tx.paypalOrder.updateMany({
                 where: { paypalOrderId: orderId },
                 data: { status },
@@ -272,5 +290,31 @@ export class PaypalWebhookService {
         });
 
         this.logger.log(`PayPal capture ${captureId} status synchronized: ${status}`);
+    }
+
+    private canTransitionCaptureStatus(
+        currentStatus: string | null | undefined,
+        nextStatus: CaptureStatus,
+    ): boolean {
+        if (!currentStatus || currentStatus === nextStatus) {
+            return true;
+        }
+
+        switch (currentStatus) {
+            case 'PENDING':
+                return true;
+
+            case 'COMPLETED':
+                return nextStatus === 'REFUNDED';
+
+            case 'DENIED':
+                return false;
+
+            case 'REFUNDED':
+                return false;
+
+            default:
+                return true;
+        }
     }
 }

@@ -20,7 +20,7 @@ export class AiController {
         @Param('businessId') businessId: string,
     ) {
         const revenue =  await this.revenueService.analyzeBusiness(businessId);
-        const analysis = await this.aiService.analyzeRevenue(revenue as any);
+        const analysis = await this.aiService.analyzeRevenue(revenue);
 
         const run = await this.aiRunService.recordRun(
             businessId,

@@ -32,6 +32,27 @@ describe('PaypalWebhookService', () => {
         ...overrides,
     });
 
+    async function sendCaptureEvent(
+        status: 'PENDING' | 'COMPLETED' | 'DENIED' | 'REFUNDED',
+    ) {
+        const captureEvent = event({
+            event_type: `PAYMENT.CAPTURE.${status}`,
+            resource_type: 'capture',
+            resource: {
+                id: 'capture-1',
+                amount: {
+                    value: '100.00',
+                    currency_code: 'USD',
+                },
+                supplementary_data: {
+                    related_ids: { order_id: 'order-1' },
+                },
+            },
+        });
+
+        return service.handleWebhook(headers, captureEvent);
+    }
+
     beforeEach(() => {
         prisma = {
             paypalWebhookEvent: {
@@ -46,6 +67,7 @@ describe('PaypalWebhookService', () => {
             },
             paypalCapture: {
                 upsert: jest.fn().mockResolvedValue({}),
+                findUnique: jest.fn().mockResolvedValue(null)
             },
             paypalPaymentEvent: {
                 create: jest.fn().mockResolvedValue({}),
@@ -378,7 +400,6 @@ describe('PaypalWebhookService', () => {
         });
     });
 
-
     it('releases a failed claim and allows a subsequent delivery to retry', async () => {
         invoiceSyncService.sync
             .mockRejectedValueOnce(new Error('Temporary PayPal API failure'))
@@ -411,5 +432,50 @@ describe('PaypalWebhookService', () => {
             eventId: 'event-1',
         });
         expect(invoiceSyncService.sync).toHaveBeenCalledTimes(2);
+    });
+    
+    it('ignores a stale PENDING event after COMPLETED', async () => {
+        prisma.paypalCapture.findUnique.mockResolvedValue({
+            status: 'COMPLETED',
+        });
+
+        await sendCaptureEvent('PENDING');
+
+        expect(prisma.paypalOrder.updateMany).not.toHaveBeenCalled();
+        expect(prisma.paypalCapture.upsert).not.toHaveBeenCalled();
+        expect(prisma.paypalPaymentEvent.upsert).not.toHaveBeenCalled();
+    });
+
+    it('ignores COMPLETED after a capture has been REFUNDED', async () => {
+        prisma.paypalCapture.findUnique.mockResolvedValue({
+            status: 'REFUNDED',
+        });
+
+        await sendCaptureEvent('COMPLETED');
+
+        expect(prisma.paypalOrder.updateMany).not.toHaveBeenCalled();
+        expect(prisma.paypalCapture.upsert).not.toHaveBeenCalled();
+        expect(prisma.paypalPaymentEvent.upsert).not.toHaveBeenCalled();
+    });
+
+    it('allows PENDING to transition to COMPLETED', async () => {
+        prisma.paypalCapture.findUnique.mockResolvedValue({ status: 'PENDING' });
+
+        await sendCaptureEvent('COMPLETED');
+
+        expect(prisma.paypalOrder.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { paypalOrderId: 'order-1' },
+                data: { status: 'COMPLETED' },
+            }),
+        );
+
+        expect(prisma.paypalCapture.upsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                update: expect.objectContaining({
+                    status: 'COMPLETED'
+                }),
+            }),
+        );
     });
 });

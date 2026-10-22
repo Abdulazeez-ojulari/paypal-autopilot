@@ -13,7 +13,7 @@ describe('PaypalInvoiceSyncService', () => {
     const prisma = {
         invoice: {
             findUnique: jest.fn(),
-            update: jest.fn()
+            updateMany: jest.fn(),
         },
     };
 
@@ -59,12 +59,7 @@ describe('PaypalInvoiceSyncService', () => {
         service = module.get(PaypalInvoiceSyncService);
 
         prisma.invoice.findUnique.mockResolvedValue(makeLocalInvoice());
-        prisma.invoice.update.mockImplementation(
-            async ({ data }: { data: Record<string, unknown> }) => ({
-                ...makeLocalInvoice(),
-                ...data,
-            })
-        );
+        prisma.invoice.updateMany.mockResolvedValue({ count: 1 })
     });
 
     async function runSync(
@@ -111,9 +106,9 @@ describe('PaypalInvoiceSyncService', () => {
             expect(result.paypalStatus).toBe(paypalStatus);
             expect(result.localStatus).toBe(expectedLocalStatus);
 
-            expect(prisma.invoice.update).toHaveBeenCalledWith(
+            expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { id: 'local-invoice-1' },
+                    where: { id: 'local-invoice-1', "status": "OVERDUE" },
                     data: expect.objectContaining({
                         status: expectedLocalStatus,
                     }),
@@ -145,7 +140,7 @@ describe('PaypalInvoiceSyncService', () => {
             })
         );
 
-        const updateCall = prisma.invoice.update.mock.calls[0][0];
+        const updateCall = prisma.invoice.updateMany.mock.calls[0][0];
 
         expect(updateCall.data.status).toBe('PARTIALLY_PAID');
         expect(updateCall.data.paidAmount.toString()).toBe('40');
@@ -154,7 +149,7 @@ describe('PaypalInvoiceSyncService', () => {
     it('sets paidAmount to the full invoice amount when PAID has no paid_amount field', async () => {
         await runSync(makePaypalInvoice('PAID'));
 
-        const updateCall = prisma.invoice.update.mock.calls[0][0];
+        const updateCall = prisma.invoice.updateMany.mock.calls[0][0];
 
         expect(updateCall.data.status).toBe('PAID');
         expect(updateCall.data.paidAmount.toString()).toBe('100');
@@ -173,14 +168,14 @@ describe('PaypalInvoiceSyncService', () => {
             ))
             .rejects.toThrow(/currency mismatch/i);
 
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it('does not update the database for an unknown PayPal status', async () => {
         const result = await runSync(makePaypalInvoice('SOME_NEW_STATUS'));
 
         expect(result.synchronized).toBe(false);
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it('does not update the database when the PayPal invoice has no local reference', async () => {
@@ -191,7 +186,7 @@ describe('PaypalInvoiceSyncService', () => {
         );
 
         expect(result.synchronized).toBe(false);
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it('does not update the database when the local invoice cannot be found', async () => {
@@ -201,7 +196,7 @@ describe('PaypalInvoiceSyncService', () => {
         const result = await service.sync('PAYPAL-INV-001');
 
         expect(result.synchronized).toBe(false);
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it('rejects a mismatched PayPal invoice ID', async () => {
@@ -209,7 +204,7 @@ describe('PaypalInvoiceSyncService', () => {
             runSync(makePaypalInvoice('PAID', { id: 'different-paypal-invoice' })),
         ).rejects.toThrow(/invoice id mismatch/i);
 
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it.each(['-1.00', '101.00', 'not-a-number'])(
@@ -226,7 +221,7 @@ describe('PaypalInvoiceSyncService', () => {
             }))
             ).rejects.toThrow();
 
-            expect(prisma.invoice.update).not.toHaveBeenCalled();
+            expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
         },
     );
 
@@ -242,7 +237,7 @@ describe('PaypalInvoiceSyncService', () => {
             })),
         ).rejects.toThrow(/paid amount currency mismatch/i);
 
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
     });
 
     it('rejects PARTIALLY_PAID without a positive paid amount', async () => {
@@ -257,6 +252,44 @@ describe('PaypalInvoiceSyncService', () => {
             }))
         ).rejects.toThrow(/partially_paid/i);
 
-        expect(prisma.invoice.update).not.toHaveBeenCalled();
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('does not downgrade a partially paid invoice from a stale SENT snapshot', async () => {
+        const result = await runSync(
+            makePaypalInvoice('SENT'),
+            makeLocalInvoice({
+                status: 'PARTIALLY_PAID',
+                paidAmount: '40.00',
+            }),
+        );
+
+        expect(result.synchronized).toBe(false);
+        expect(result.reason).toMatch(/stale invoice status/i);
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('does not downgrade a paid invoice from a stale UNPAID snapshot', async () => {
+        const result = await runSync(
+            makePaypalInvoice('UNPAID'),
+            makeLocalInvoice({
+                status: 'PAID',
+                paidAmount: '100.00',
+                paidAt: new Date('2026-10-20T10:00:00Z'),
+            }),
+        );
+
+        expect(result.synchronized).toBe(false);
+        expect(result.reason).toMatch(/stale invoice status/i);
+        expect(prisma.invoice.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite an invoice changed concurrently', async () => {
+        prisma.invoice.updateMany.mockResolvedValue({ count: 0 });
+
+        const result = await runSync(makePaypalInvoice('PAID'));
+
+        expect(result.synchronized).toBe(false);
+        expect(result.reason).toMatch(/changed during synchronization/i);
     });
 });
