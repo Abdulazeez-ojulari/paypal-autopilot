@@ -85,16 +85,38 @@ export default function ApprovalsPage() {
     }, []);
 
     useEffect(() => {
-        const id = localStorage.getItem("pa_business_id");
+        function selectWorkspace(id: string) {
+            setBusinessId(id);
+            setApprovals([]);
+            setExecutionChecks({});
+            setExecutionCheckErrors({});
+            setCheckingExecution({});
+            setError("");
+            setNotice("");
+            setLoading(true);
 
-        if (!id) {
-            setError("No business workspace was found. Please sign in again.");
-            setLoading(false);
-            return;
+            if (!id) {
+                setError("No business workspace was found. Please sign in again.");
+                setLoading(false);
+                return;
+            }
+
+            void loadApprovals(id);
         }
 
-        setBusinessId(id);
-        void loadApprovals(id);
+        function handleWorkspaceChange(event: Event) {
+            const customEvent = event as CustomEvent<{ businessId?: string }>;
+            const id = customEvent.detail?.businessId;
+
+            if (id) selectWorkspace(id);
+        }
+
+        selectWorkspace(localStorage.getItem("pa_business_id") || "");
+        window.addEventListener("pa:business-changed", handleWorkspaceChange);
+
+        return () => {
+            window.removeEventListener("pa:business-changed", handleWorkspaceChange);
+        };
     }, [loadApprovals]);
 
     async function performAction(
@@ -105,7 +127,11 @@ export default function ApprovalsPage() {
         if (!businessId) return;
 
         const token = localStorage.getItem("pa_access_token");
-        if (!token) return;
+
+        if (!token) {
+            setError("Your session has expired. Please sign in again.");
+            return;
+        }
 
         setBusyId(approvalId);
         setError("");
@@ -117,75 +143,52 @@ export default function ApprovalsPage() {
             const result = await apiRequest<unknown>(
                 `/approvals/businesses/${businessId}/${approvalId}/${action}`,
                 {
-                method: "POST",
-                ...(body ? { body } : {}),
+                    method: "POST",
+                    ...(body ? { body } : {}),
                 },
-                token,
+                token
             );
 
-            if (action === "approve") {
-                setNotice("Approval recorded.");
-            } else if (action === "reject") {
-                setNotice("Approval rejected.");
+            const response = result && typeof result === "object" ? (result as Record<string, unknown>) : {};
+
+            setExecutionChecks((current) => {
+                const next = { ...current };
+                delete next[approvalId];
+                return next;
+            });
+
+            setExecutionCheckErrors((current) => ({
+                ...current,
+                [approvalId]: ""
+            }));
+
+            if (action === "reject") {
                 setRejectingId("");
                 setReason("");
-            } else if (action === "execute") {
-                setNotice("Execution request completed. Check the returned status and refresh the queue.");
-            } else {
-                setNotice("Reconciliation request completed.");
             }
 
             await loadApprovals(businessId);
 
-            const response = result && typeof result === "object" ? (result as Record<string, unknown>) : {};
+            const responseMessage = typeof response.message === "string" ? response.message : "";
+            const status = typeof response.status === "string" ? response.status : "";
 
-            setApprovals((current) => {
-                const updated = current.map((item) => {
-                    if (item.id !== approvalId) return item;
+            const executionStatus = typeof response.executionStatus === "string" ? response.executionStatus : "";
 
-                    const changes: Record<string, unknown> = {};
-
-                    if (action === "approve") {
-                        changes.status = "APPROVED";
-                    }
-
-                    if (action === "reject") {
-                        changes.status = "REJECTED";
-                        changes.rejectionReason = rejectionReason;
-                    }
-
-                    if (action === "execute" || action === "reconcile") {
-                        if (typeof response.status === "string") {
-                            changes.status = response.status;
-                        }
-
-                        if (typeof response.executionStatus === "string") {
-                            changes.executionStatus = response.executionStatus;
-                        }
-
-                        if (typeof response.paypalInvoiceId === "string") {
-                            changes.paypalInvoiceId = response.paypalInvoiceId;
-                        }
-                    }
-
-                    return { ...item, ...changes } as Approval;
-                });
-
-                return updated;
-            });
-
-            if (action === "approve") {
-                setNotice("Approval recorded. Review the approved request before execution.");
+            if (responseMessage) {
+                setNotice(responseMessage);
+            } else if (action === "approve") {
+                setNotice("Approval request submitted. The queue has been refreshed.");
             } else if (action === "reject") {
-                setNotice("Approval rejected.");
-                setRejectingId("");
-                setReason("");
-            } else {
+                setNotice("Rejection request submitted. The queue has been refreshed.");
+            } else if (action === "execute") {
                 setNotice(
-                    typeof response.message === "string"
-                    ? response.message
-                    : "The request returned. Verify its execution status before proceeding.",
-                );
+                    status.toUpperCase() === "SUCCEEDED" ||
+                    executionStatus.toUpperCase() === "SUCCEEDED"
+                    ? "Execution reports success. Reconcile with PayPal to verify the resulting invoice state."
+                    : `Execution request returned${executionStatus ? ` with status ${executionStatus}` : ""}. Verify the latest status before retrying.`,
+            );
+            } else {
+                setNotice(`Reconciliation completed${executionStatus ? ` with execution status ${executionStatus}` : ""}. Review the refreshed queue before taking further action.`);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : `Could not ${action} this approval.`);
@@ -220,17 +223,29 @@ export default function ApprovalsPage() {
         }
     }
 
-    async function checkExecutionEligibility(approvalId: string) {
-        const selectedBusinessId = localStorage.getItem("pa_business_id");
+    async function checkExecutionEligibility(
+        approvalId: string,
+    ): Promise<ExecutionCheck | null> {
+        const selectedBusinessId = businessId;
         const token = localStorage.getItem("pa_access_token");
 
         if (!selectedBusinessId || !token) {
-            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "Your session or business workspace is missing. Please sign in again." }));
-            return;
+            setExecutionCheckErrors((current) => ({
+                ...current,
+                [approvalId]: "Your session or business workspace is missing. Please sign in again."
+            }));
+            return null;
         }
 
-        setCheckingExecution((current) => ({ ...current, [approvalId]: true }))
-        setExecutionCheckErrors((current) => ({ ...current, [approvalId]: "" }));
+        setCheckingExecution((current) => ({
+            ...current,
+            [approvalId]: true
+        }));
+
+        setExecutionCheckErrors((current) => ({
+            ...current,
+            [approvalId]: ""
+        }));
 
         setExecutionChecks((current) => {
             const next = { ...current };
@@ -242,16 +257,60 @@ export default function ApprovalsPage() {
             const result = await apiRequest<ExecutionCheck>(
                 `/approvals/businesses/${selectedBusinessId}/${approvalId}/execution-check`,
                 { method: "GET" },
-                token,
+                token
             );
 
-            setExecutionChecks((current) => ({ ...current, [approvalId]: result }));
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Unable to verify execution eligibility.";
+            if (result.businessId && result.businessId !== selectedBusinessId) {
+                throw new Error("The eligibility response belongs to a different workspace. Refresh and try again.");
+            }
 
-            setExecutionCheckErrors((current) => ({ ...current, [approvalId]: message }));
+            setExecutionChecks((current) => ({
+                ...current,
+                [approvalId]: result
+            }));
+
+            return result;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Unable to verify execution eligibility.";
+
+            setExecutionCheckErrors((current) => ({
+                ...current,
+                [approvalId]: message
+            }));
+
+            return null;
         } finally {
-            setCheckingExecution((current) => ({ ...current, [approvalId]: false }));
+            setCheckingExecution((current) => ({
+                ...current,
+                [approvalId]: false
+            }));
+        }
+    }
+
+    async function executeAfterEligibilityCheck(approvalId: string) {
+        const eligibility = await checkExecutionEligibility(approvalId);
+
+        if (!eligibility) {
+            setNotice("Execution was not attempted because eligibility could not be verified.");
+            return;
+        }
+
+    const eligible =
+        eligibility.eligibleForExecution === true &&
+        eligibility.approvalStatus === "APPROVED" &&
+        eligibility.executionStatus === "NOT_STARTED" &&
+        eligibility.executed === false &&
+        eligibility.action === "REVIEW_AND_SEND_PAYMENT_REQUEST";
+
+        if (!eligible) {
+            setNotice("Execution is blocked. The latest eligibility check says this request is not eligible. Review the updated invoice and approval state.");
+            return;
+        }
+
+        const confirmed = window.confirm("The latest eligibility check passed. Execute this approved payment request through PayPal?");
+
+        if (confirmed) {
+            await performAction(approvalId, "execute");
         }
     }
 
@@ -430,13 +489,14 @@ export default function ApprovalsPage() {
 
                                         {canExecute && (
                                             <button
-                                                onClick={() => {
-                                                    const confirmed = window.confirm("Execute this approved payment request through PayPal?");
+                                                // onClick={() => {
+                                                //     const confirmed = window.confirm("Execute this approved payment request through PayPal?");
 
-                                                    if (confirmed) {
-                                                        void performAction(approval.id, "execute");
-                                                    }
-                                                }}
+                                                //     if (confirmed) {
+                                                //         void performAction(approval.id, "execute");
+                                                //     }
+                                                // }}
+                                                onClick={() => void executeAfterEligibilityCheck(approval.id)}
                                                 disabled={busyId !== ""}
                                                 className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                                             >

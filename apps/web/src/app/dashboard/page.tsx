@@ -110,26 +110,60 @@ export default function DashboardPage() {
     }, []);
 
     useEffect(() => {
-        const id = localStorage.getItem("pa_business_id");
-
-        if (!id) {
+        function selectWorkspace(id: string) {
+            if (!id) {
+            setBusinessId("");
+            setOpportunities([]);
+            setRuns([]);
+            setLoading(false);
             setError("No business workspace was found. Please sign in again.");
+            return;
+            }
+
+            setBusinessId(id);
+            setOpportunities([]);
+            setRuns([]);
+            setLoading(true);
+
+            try {
+            const businesses = JSON.parse(
+                localStorage.getItem("pa_businesses") || "[]",
+            );
+            const business = businesses.find(
+                (item: { id: string }) => item.id === id,
+            );
+
+            setCurrency(
+                typeof business?.currency === "string" ? business.currency : "USD",
+            );
+            } catch {
+            setCurrency("USD");
+            }
+
+            void loadDashboard(id);
+        }
+
+        function handleWorkspaceChange(event: Event) {
+            const customEvent = event as CustomEvent<{ businessId?: string }>;
+            const id = customEvent.detail?.businessId;
+
+            if (id) selectWorkspace(id);
+        }
+
+        const initialId = localStorage.getItem("pa_business_id");
+
+        if (!localStorage.getItem("pa_access_token")) {
             setLoading(false);
             return;
         }
 
-        setBusinessId(id);
+        selectWorkspace(initialId || "");
 
-        try {
-            const businesses = JSON.parse(localStorage.getItem("pa_businesses") || "[]");
-            const business = businesses.find((item: { id: string }) => item.id === id);
+        window.addEventListener("pa:business-changed", handleWorkspaceChange);
 
-            if (business?.currency) setCurrency(business.currency);
-        } catch {
-            // Retain USD as the display fallback.
-        }
-
-        void loadDashboard(id);
+        return () => {
+            window.removeEventListener("pa:business-changed", handleWorkspaceChange);
+        };
     }, [loadDashboard]);
 
     async function runAnalysis() {
