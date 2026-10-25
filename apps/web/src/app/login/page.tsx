@@ -19,28 +19,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await apiRequest<AuthResponse>("/auth/login", {
-        method: "POST",
+      const result = await apiRequest<AuthResponse>('/auth/login', {
+        method: 'POST',
         body: JSON.stringify({
           email: email.trim(),
           password,
         }),
       });
 
-      const businesses =
-        result.businesses ??
-        (result.business ? [result.business] : []);
+      const businesses = result.businesses ?? (result.business ? [result.business] : []);
 
-      if (!result.accessToken || businesses.length === 0) {
-        throw new Error("Login succeeded, but no business was returned for this account.");
+      if (businesses.length === 0) {
+        throw new Error('Login succeeded, but no business was returned for this account.');
       }
 
-      localStorage.setItem("pa_access_token", result.accessToken);
-      localStorage.setItem("pa_user", JSON.stringify(result.user));
-      localStorage.setItem("pa_businesses", JSON.stringify(businesses));
-      localStorage.setItem("pa_business_id", businesses[0].id);
+      localStorage.setItem('pa_user', JSON.stringify(result.user));
+      localStorage.setItem('pa_businesses', JSON.stringify(businesses));
+      localStorage.setItem('pa_business_id', businesses[0].id);
 
-      router.replace("/dashboard");
+      router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
     } finally {

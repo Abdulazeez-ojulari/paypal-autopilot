@@ -20,8 +20,8 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const result = await apiRequest<AuthResponse>("/auth/register", {
-        method: "POST",
+      const result = await apiRequest<AuthResponse>('/auth/register', {
+        method: 'POST',
         body: JSON.stringify({
           businessName: businessName.trim(),
           email: email.trim(),
@@ -30,17 +30,17 @@ export default function RegisterPage() {
       });
 
       const businesses = result.businesses ?? (result.business ? [result.business] : []);
+      const business = result.business ?? businesses[0];
 
-      if (!result.accessToken || businesses.length === 0) {
-        throw new Error("The account was created, but the expected login details were not returned.");
+      if (!business) {
+        throw new Error('Registration succeeded, but no business was returned for this account.');
       }
 
-      localStorage.setItem("pa_access_token", result.accessToken);
-      localStorage.setItem("pa_user", JSON.stringify(result.user));
-      localStorage.setItem("pa_businesses", JSON.stringify(businesses));
-      localStorage.setItem("pa_business_id", businesses[0].id);
+      localStorage.setItem('pa_user', JSON.stringify(result.user));
+      localStorage.setItem('pa_businesses', JSON.stringify([business]));
+      localStorage.setItem('pa_business_id', business.id);
 
-      router.replace("/dashboard");
+      router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create your account.");
     } finally {

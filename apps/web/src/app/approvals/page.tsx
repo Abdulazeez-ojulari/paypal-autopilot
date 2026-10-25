@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { Approval, apiRequest, unwrapArray } from "@/lib/api";
 
@@ -60,32 +60,41 @@ export default function ApprovalsPage() {
     const [executionChecks, setExecutionChecks] = useState<Record<string, ExecutionCheck>>({});
     const [checkingExecution, setCheckingExecution] = useState<Record<string, boolean>>({});
     const [executionCheckErrors, setExecutionCheckErrors] = useState<Record<string, string>>({});
+    const approvalRequestId = useRef(0);
 
     const loadApprovals = useCallback(async (id: string) => {
-        const token = localStorage.getItem("pa_access_token");
-
-        if (!token) {
-            setLoading(false);
-            return;
-        }
+        const requestId = ++approvalRequestId.current;
 
         try {
-            const result = await apiRequest<unknown>(
-                `/approvals/businesses/${id}/pending`,
-                {}, token
-            );
+            const result = await apiRequest<unknown>(`/approvals/businesses/${id}/pending`);
+
+            // Ignore responses from an older request or previous workspace.
+            if (
+                requestId !== approvalRequestId.current || localStorage.getItem("pa_business_id") !== id
+            ) {
+                return;
+            }
 
             setApprovals(unwrapArray<Approval>(result));
             setError("");
         } catch (err) {
+            if (
+                requestId !== approvalRequestId.current || localStorage.getItem("pa_business_id") !== id
+            ) {
+                return;
+            }
+
             setError(err instanceof Error ? err.message : "Could not load pending approvals.");
         } finally {
-            setLoading(false);
+            if (requestId === approvalRequestId.current) {
+                setLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
         function selectWorkspace(id: string) {
+            approvalRequestId.current += 1;
             setBusinessId(id);
             setApprovals([]);
             setExecutionChecks({});
@@ -124,12 +133,12 @@ export default function ApprovalsPage() {
         action: "approve" | "reject" | "execute" | "reconcile",
         rejectionReason?: string,
     ) {
-        if (!businessId) return;
+        const actionBusinessId = businessId;
 
-        const token = localStorage.getItem("pa_access_token");
-
-        if (!token) {
-            setError("Your session has expired. Please sign in again.");
+        if (
+            !actionBusinessId || localStorage.getItem("pa_business_id") !== actionBusinessId
+        ) {
+            setError("Your active workspace has changed. Please try again.");
             return;
         }
 
@@ -141,12 +150,11 @@ export default function ApprovalsPage() {
             const body = action === "reject" ? JSON.stringify({ reason: rejectionReason }) : undefined;
 
             const result = await apiRequest<unknown>(
-                `/approvals/businesses/${businessId}/${approvalId}/${action}`,
+                `/approvals/businesses/${actionBusinessId}/${approvalId}/${action}`,
                 {
                     method: "POST",
                     ...(body ? { body } : {}),
                 },
-                token
             );
 
             const response = result && typeof result === "object" ? (result as Record<string, unknown>) : {};
@@ -167,7 +175,7 @@ export default function ApprovalsPage() {
                 setReason("");
             }
 
-            await loadApprovals(businessId);
+            await loadApprovals(actionBusinessId);
 
             const responseMessage = typeof response.message === "string" ? response.message : "";
             const status = typeof response.status === "string" ? response.status : "";
@@ -200,9 +208,6 @@ export default function ApprovalsPage() {
     async function initializeApprovals() {
         if (!businessId) return;
 
-        const token = localStorage.getItem("pa_access_token");
-        if (!token) return;
-
         setBusyId("initialize");
         setError("");
         setNotice("");
@@ -211,7 +216,6 @@ export default function ApprovalsPage() {
             await apiRequest(
                 `/approvals/businesses/${businessId}/initialize`,
                 { method: "POST" },
-                token,
             );
 
             setNotice("Approval initialization completed. The queue has been refreshed.");
@@ -227,12 +231,22 @@ export default function ApprovalsPage() {
         approvalId: string,
     ): Promise<ExecutionCheck | null> {
         const selectedBusinessId = businessId;
-        const token = localStorage.getItem("pa_access_token");
 
-        if (!selectedBusinessId || !token) {
+        if (
+            !selectedBusinessId || localStorage.getItem("pa_business_id") !== selectedBusinessId
+        ) {
             setExecutionCheckErrors((current) => ({
                 ...current,
-                [approvalId]: "Your session or business workspace is missing. Please sign in again."
+                [approvalId]: "The active workspace has changed. Select the approval again and recheck eligibility.",
+            }));
+
+            return null;
+        }
+
+        if (!selectedBusinessId) {
+            setExecutionCheckErrors((current) => ({
+                ...current,
+                [approvalId]: "Your business workspace is missing. Please sign in again."
             }));
             return null;
         }
@@ -257,8 +271,13 @@ export default function ApprovalsPage() {
             const result = await apiRequest<ExecutionCheck>(
                 `/approvals/businesses/${selectedBusinessId}/${approvalId}/execution-check`,
                 { method: "GET" },
-                token
             );
+
+            if (
+                localStorage.getItem("pa_business_id") !== selectedBusinessId
+            ) {
+                return null;
+            }
 
             if (result.businessId && result.businessId !== selectedBusinessId) {
                 throw new Error("The eligibility response belongs to a different workspace. Refresh and try again.");

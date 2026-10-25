@@ -17,24 +17,23 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const headers = new Headers(options.headers);
 
-  if (options.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  if (options.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
-  if (accessToken) {
-    headers.set("Authorization", `Bearer ${accessToken}`);
-  }
-
+  headers.set('X-Requested-With', 'XMLHttpRequest');
+  
   let response: Response;
 
   try {
     response = await fetch(`${API_URL}${path}`, {
       ...options,
       headers,
-      cache: "no-store",
+      credentials: 'include',
+      cache: 'no-store',
     });
   } catch {
-    throw new ApiError("Unable to reach the API. Check that the backend is running.", 0);
+    throw new ApiError('Unable to reach the API. Check that the backend is running.', 0);
   }
 
   if (!response.ok) {
@@ -45,8 +44,8 @@ export async function apiRequest<T>(
       const apiMessage = data.message;
 
       if (Array.isArray(apiMessage)) {
-        message = apiMessage.join(", ");
-      } else if (typeof apiMessage === "string") {
+        message = apiMessage.join(', ');
+      } else if (typeof apiMessage === 'string') {
         message = apiMessage;
       }
     } catch {
@@ -71,9 +70,8 @@ export interface Business {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  tokenType: "Bearer";
-  expiresIn: string;
+  tokenType?: 'Bearer';
+  expiresIn?: string;
   user: {
     id: string;
     email: string;

@@ -1,4 +1,5 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 export interface AuthenticatedUser {
@@ -8,27 +9,52 @@ export interface AuthenticatedUser {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-    constructor(private readonly jwtService: JwtService) {}
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<{
-            headers: { authorization?: string };
+            method: string;
+            headers: {
+                authorization?: string;
+                origin?: string;
+                'x-requested-with'?: string;
+            };
+            cookies?: Record<string, string | undefined>;
             user?: AuthenticatedUser;
         }>();
 
         const authorization = request.headers.authorization;
-        const [scheme, token] = authorization?.split(' ') ?? [];
+        const [scheme, bearerToken] = authorization?.split(' ') ?? [];
 
-        if (scheme !== 'Bearer' || !token) {
-            throw new UnauthorizedException('A valid bearer token is required.');
+        const cookieToken = request.cookies?.pa_access_token;
+        const token =
+        cookieToken || (scheme === 'Bearer' ? bearerToken : undefined);
+
+        if (!token) {
+            throw new UnauthorizedException('Authentication is required.');
+        }
+
+        // Protect cookie-authenticated mutations against cross-origin requests.
+        if (cookieToken && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+            const origin = request.headers.origin;
+            const expectedOrigin = (this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3001' ).replace(/\/+$/, '');
+
+            if (
+                !origin ||
+                origin.replace(/\/+$/, '') !== expectedOrigin ||
+                request.headers['x-requested-with'] !== 'XMLHttpRequest'
+            ) {
+                throw new UnauthorizedException('Invalid request origin.');
+            }
         }
 
         try {
             const payload = await this.jwtService.verifyAsync<AuthenticatedUser>(token);
 
-            if (
-                typeof payload.sub !== 'string' || typeof payload.email !== 'string'
-            ) {
+            if (typeof payload.sub !== 'string' || typeof payload.email !== 'string') {
                 throw new UnauthorizedException('Invalid token payload.');
             }
 

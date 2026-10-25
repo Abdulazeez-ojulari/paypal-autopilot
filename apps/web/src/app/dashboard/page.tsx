@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { AiRun, ApiError, apiRequest, formatMoney, RevenueOpportunity, unwrapArray } from "@/lib/api";
 
@@ -60,22 +60,25 @@ export default function DashboardPage() {
     const [analyzing, setAnalyzing] = useState(false);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
+    const dashboardRequestId = useRef(0);
+    const analysisRequestId = useRef(0);
 
     const loadDashboard = useCallback(async (id: string) => {
-        const token = localStorage.getItem("pa_access_token");
-
-        if (!token) {
-            setLoading(false);
-            return;
-        }
+        const requestId = ++dashboardRequestId.current;
 
         setError("");
 
         const results = await Promise.allSettled([
-            apiRequest<unknown>(`/revenue/businesses/${id}/opportunities`, {}, token),
-            apiRequest<unknown>(`/ai/businesses/${id}/runs`, {}, token),
-            apiRequest<{ provider?: string; model?: string }>("/ai/provider", {}, token),
+            apiRequest<unknown>(`/revenue/businesses/${id}/opportunities`),
+            apiRequest<unknown>(`/ai/businesses/${id}/runs`),
+            apiRequest<{ provider?: string; model?: string }>("/ai/provider"),
         ]);
+
+        if (
+            requestId !== dashboardRequestId.current || localStorage.getItem("pa_business_id") !== id
+        ) {
+            return;
+        }
 
         if (results[0].status === "fulfilled") {
             setOpportunities(unwrapArray<RevenueOpportunity>(results[0].value));
@@ -87,19 +90,24 @@ export default function DashboardPage() {
 
         if (results[2].status === "fulfilled") {
             const data = results[2].value;
+
             setProvider([data.provider, data.model].filter(Boolean).join(" · ") || "Provider configured");
         }
 
-        const failures = results.filter((result) => result.status === "rejected");
+        const failures = results.filter(
+            (result) => result.status === "rejected",
+        );
 
         if (failures.length === 3) {
-            const reason = failures[0];
+            const firstFailure = failures[0];
 
             setError(
-                reason.status === "rejected" && reason.reason instanceof ApiError
-                ? reason.reason.message
-                : "Could not load dashboard data. Please try again.",
+                firstFailure.status === "rejected" &&
+                    firstFailure.reason instanceof ApiError
+                    ? firstFailure.reason.message
+                    : "Could not load dashboard data. Please try again.",
             );
+            setNotice("");
         } else if (failures.length > 0) {
             setNotice("Some dashboard information could not be loaded. Check the API and refresh.");
         } else {
@@ -111,13 +119,16 @@ export default function DashboardPage() {
 
     useEffect(() => {
         function selectWorkspace(id: string) {
+            dashboardRequestId.current += 1;
+            analysisRequestId.current += 1;
+            setAnalyzing(false);
             if (!id) {
-            setBusinessId("");
-            setOpportunities([]);
-            setRuns([]);
-            setLoading(false);
-            setError("No business workspace was found. Please sign in again.");
-            return;
+                setBusinessId("");
+                setOpportunities([]);
+                setRuns([]);
+                setLoading(false);
+                setError("No business workspace was found. Please sign in again.");
+                return;
             }
 
             setBusinessId(id);
@@ -126,18 +137,12 @@ export default function DashboardPage() {
             setLoading(true);
 
             try {
-            const businesses = JSON.parse(
-                localStorage.getItem("pa_businesses") || "[]",
-            );
-            const business = businesses.find(
-                (item: { id: string }) => item.id === id,
-            );
+                const businesses = JSON.parse(localStorage.getItem("pa_businesses") || "[]");
+                const business = businesses.find((item: { id: string }) => item.id === id);
 
-            setCurrency(
-                typeof business?.currency === "string" ? business.currency : "USD",
-            );
+                setCurrency(typeof business?.currency === "string" ? business.currency : "USD");
             } catch {
-            setCurrency("USD");
+                setCurrency("USD");
             }
 
             void loadDashboard(id);
@@ -151,26 +156,24 @@ export default function DashboardPage() {
         }
 
         const initialId = localStorage.getItem("pa_business_id");
-
-        if (!localStorage.getItem("pa_access_token")) {
-            setLoading(false);
-            return;
-        }
-
         selectWorkspace(initialId || "");
 
         window.addEventListener("pa:business-changed", handleWorkspaceChange);
-
         return () => {
             window.removeEventListener("pa:business-changed", handleWorkspaceChange);
         };
     }, [loadDashboard]);
 
     async function runAnalysis() {
-        if (!businessId) return;
+        const selectedBusinessId = businessId;
 
-        const token = localStorage.getItem("pa_access_token");
-        if (!token) return;
+        if (
+            !selectedBusinessId || localStorage.getItem("pa_business_id") !== selectedBusinessId
+        ) {
+            return;
+        }
+
+        const requestId = ++analysisRequestId.current;
 
         setAnalyzing(true);
         setError("");
@@ -178,17 +181,31 @@ export default function DashboardPage() {
 
         try {
             await apiRequest(
-                `/ai/businesses/${businessId}/revenue-analysis`,
+                `/ai/businesses/${selectedBusinessId}/revenue-analysis`,
                 { method: "POST" },
-                token,
             );
 
-            setNotice("Revenue analysis completed. Dashboard data refreshed.");
-            await loadDashboard(businessId);
+            if (
+                requestId !== analysisRequestId.current || localStorage.getItem("pa_business_id") !== selectedBusinessId
+            ) {
+                return;
+            }
+
+            setNotice("Revenue analysis completed. Refreshing the latest dashboard data.");
+
+            await loadDashboard(selectedBusinessId);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Revenue analysis failed.");
+            if (
+                requestId !== analysisRequestId.current || localStorage.getItem("pa_business_id") !== selectedBusinessId
+            ) {
+                return;
+            }
+
+            setError(err instanceof Error? err.message : "Revenue analysis failed.");
         } finally {
-            setAnalyzing(false);
+            if (requestId === analysisRequestId.current) {
+                setAnalyzing(false);
+            }
         }
     }
 
