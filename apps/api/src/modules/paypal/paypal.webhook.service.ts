@@ -40,6 +40,8 @@ export class PaypalWebhookService {
             throw new BadRequestException('Invalid PayPal webhook signature.');
         }
 
+        console.log(event)
+
         const storedEvent = await this.prisma.paypalWebhookEvent.upsert({
             where: { eventId: event.id },
             update: {},
@@ -193,14 +195,17 @@ export class PaypalWebhookService {
             case 'INVOICING.INVOICE.PAID':
             case 'INVOICING.INVOICE.SENT':
             case 'INVOICING.INVOICE.CANCELLED':
-            case 'INVOICING.INVOICE.REFUNDED':
-                if (!event.resource?.id) {
+            case 'INVOICING.INVOICE.REFUNDED': {
+                const invoiceId = event.resource?.invoice?.id ?? event.resource?.id;
+
+                if (!invoiceId) {
                     this.logger.warn(`PayPal invoice event ${event.id} has no invoice ID.`);
                     return;
                 }
 
-                await this.invoiceSyncService.sync(event.resource.id);
+                await this.invoiceSyncService.sync(invoiceId);
                 return;
+            }
 
             default:
                 this.logger.log(`Ignoring PayPal event: ${event.event_type}`);

@@ -187,6 +187,7 @@ export class PaypalInvoiceSyncService {
             where: {
                 id: invoice.id,
                 status: invoice.status,
+                paidAmount: invoice.paidAmount,
             },
             data,
         });

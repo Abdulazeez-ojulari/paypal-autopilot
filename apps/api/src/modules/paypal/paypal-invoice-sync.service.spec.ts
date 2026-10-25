@@ -108,7 +108,7 @@ describe('PaypalInvoiceSyncService', () => {
 
             expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { id: 'local-invoice-1', "status": "OVERDUE" },
+                    where: { id: 'local-invoice-1', "status": "OVERDUE","paidAmount": "0.00" },
                     data: expect.objectContaining({
                         status: expectedLocalStatus,
                     }),
@@ -288,6 +288,31 @@ describe('PaypalInvoiceSyncService', () => {
         prisma.invoice.updateMany.mockResolvedValue({ count: 0 });
 
         const result = await runSync(makePaypalInvoice('PAID'));
+
+        expect(result.synchronized).toBe(false);
+        expect(result.reason).toMatch(/changed during synchronization/i);
+    });
+
+    it('does not overwrite an invoice whose paid amount changed concurrently', async () => {
+        prisma.invoice.updateMany.mockResolvedValue({ count: 0 });
+
+        const result = await runSync(
+            makePaypalInvoice('PAID'),
+            makeLocalInvoice({
+                status: 'PARTIALLY_PAID',
+                paidAmount: '40.00'
+            }),
+        );
+
+        expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    id: 'local-invoice-1',
+                    status: 'PARTIALLY_PAID',
+                    paidAmount: '40.00',
+                },
+            }),
+        );
 
         expect(result.synchronized).toBe(false);
         expect(result.reason).toMatch(/changed during synchronization/i);
