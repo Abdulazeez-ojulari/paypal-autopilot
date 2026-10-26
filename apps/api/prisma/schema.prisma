@@ -116,6 +116,7 @@ model Invoice {
   paidAmount    Decimal @default(0) @db.Decimal(18, 2)
   currencyCode  String
   status        String
+  paymentUrl    String?
 
   issuedAt DateTime
   dueAt    DateTime

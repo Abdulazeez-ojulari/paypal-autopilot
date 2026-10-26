@@ -46,7 +46,7 @@ export class AiController {
         // };
     }
 
-    @Get('provider')
+    @Get('provider/:businessId')
     getProvider() {
         return {
             provider: process.env.AI_PROVIDER ?? 'ollama',

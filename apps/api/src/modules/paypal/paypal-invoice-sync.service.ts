@@ -34,6 +34,7 @@ export class PaypalInvoiceSyncService {
             throw new Error('PayPal invoice ID mismatch.');
         }
 
+        const paymentUrl = externalInvoice.detail?.metadata?.recipient_view_url;
         const localInvoiceId = externalInvoice.detail?.reference;
 
         if (!localInvoiceId) {
@@ -159,6 +160,23 @@ export class PaypalInvoiceSyncService {
         }
 
         if (!this.canTransitionInvoiceStatus(invoice.status, localStatus)) {
+            if (paymentUrl) {
+                const linkUpdate = await this.prisma.invoice.updateMany({
+                    where: {
+                        id: invoice.id,
+                        status: invoice.status,
+                        paidAmount: invoice.paidAmount,
+                    },
+                    data: {
+                        paymentUrl,
+                    },
+                });
+
+                if (linkUpdate.count !== 1) {
+                    this.logger.warn(`Invoice ${invoice.id} changed while saving its PayPal payment URL.`);
+                }
+            }
+
             this.logger.warn(
                 `Ignoring stale PayPal invoice status ${paypalStatus} for ${invoice.id}; ` +
                 `local status is ${invoice.status}.`,
@@ -174,6 +192,10 @@ export class PaypalInvoiceSyncService {
         }
 
         const data: Prisma.InvoiceUpdateManyMutationInput = { status: localStatus };
+
+        if (paymentUrl) {
+            data.paymentUrl = paymentUrl;
+        }
 
         if (nextPaidAmount !== undefined) {
             data.paidAmount = nextPaidAmount;

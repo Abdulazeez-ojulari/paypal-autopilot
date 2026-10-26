@@ -331,6 +331,11 @@ export class PaypalClient {
         detail?: {
             reference?: string;
             currency_code?: string;
+            metadata?: {
+                recipient_view_url?: string;
+                invoicer_view_url?: string;
+                [key: string]: unknown;
+            };
         };
         amount?: {
             currency_code?: string;
