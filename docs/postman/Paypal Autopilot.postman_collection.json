@@ -1,0 +1,1579 @@
+{
+  "info": {
+    "_postman_id": "af514bae-23db-482b-a163-0d9849e9b792",
+    "name": "Paypal Autopilot - Local API Testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "14876961"
+  },
+  "item": [
+    {
+      "name": "revenue",
+      "item": [
+        {
+          "name": "analyze",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/revenue/businesses/{{business_id}}/analyze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "revenue",
+                "businesses",
+                "{{business_id}}",
+                "analyze"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "analyze",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/revenue/businesses/{{business_id}}/analyze",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "revenue",
+                    "businesses",
+                    "{{business_id}}",
+                    "analyze"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n    \"invoiceCount\": 13,\r\n    \"totalOutstanding\": 2280,\r\n    \"estimatedRecovery\": 1343,\r\n    \"opportunities\": [\r\n        {\r\n            \"id\": \"cmv7ftgxe0002jguew5cpahn7\",\r\n            \"invoiceId\": \"cmv6i3lyr000kn4uezijxxik6\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"41 days overdue; customer risk is LOW; original invoice amount is USD 100.00; amount paid is USD 0.00; outstanding amount is USD 100.00.\",\r\n            \"outstandingAmount\": \"100\",\r\n            \"estimatedRecovery\": \"65\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.962Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.112Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxj0003jguenlt7m9b4\",\r\n            \"invoiceId\": \"cmv6i3lza000pn4ue3xp7g6ar\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"37 days overdue; customer risk is MEDIUM; original invoice amount is USD 110.00; amount paid is USD 0.00; outstanding amount is USD 110.00.\",\r\n            \"outstandingAmount\": \"110\",\r\n            \"estimatedRecovery\": \"77\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.967Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.122Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxq0004jgue9za6vafi\",\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"37 days overdue; customer risk is HIGH; original invoice amount is USD 400.00; amount paid is USD 0.00; outstanding amount is USD 400.00.\",\r\n            \"outstandingAmount\": \"400\",\r\n            \"estimatedRecovery\": \"180\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.974Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.126Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxx0005jguefn220556\",\r\n            \"invoiceId\": \"cmv6i3lz7000on4uezzwu8ihf\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"33 days overdue; customer risk is LOW; original invoice amount is USD 90.00; amount paid is USD 0.00; outstanding amount is USD 90.00.\",\r\n            \"outstandingAmount\": \"90\",\r\n            \"estimatedRecovery\": \"58.5\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.981Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.132Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgy10006jguewfmtt0g3\",\r\n            \"invoiceId\": \"cmv6i3lyg000in4uethcvlrmn\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"33 days overdue; customer risk is MEDIUM; original invoice amount is USD 150.00; amount paid is USD 0.00; outstanding amount is USD 150.00.\",\r\n            \"outstandingAmount\": \"150\",\r\n            \"estimatedRecovery\": \"105\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.985Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.137Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyc0008jguebqlgszho\",\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"29 days overdue; customer risk is HIGH; original invoice amount is USD 200.00; amount paid is USD 0.00; outstanding amount is USD 200.00.\",\r\n            \"outstandingAmount\": \"200\",\r\n            \"estimatedRecovery\": \"90\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.996Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.141Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgy50007jguekcpii0g6\",\r\n            \"invoiceId\": \"cmv6i3lyb000hn4ueovagulja\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"29 days overdue; customer risk is MEDIUM; original invoice amount is USD 250.00; amount paid is USD 0.00; outstanding amount is USD 250.00.\",\r\n            \"outstandingAmount\": \"250\",\r\n            \"estimatedRecovery\": \"175\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.989Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.145Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyl000ajguepfk658ne\",\r\n            \"invoiceId\": \"cmv6i3ly5000gn4ueq1xxld5j\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is LOW; original invoice amount is USD 120.00; amount paid is USD 0.00; outstanding amount is USD 120.00.\",\r\n            \"outstandingAmount\": \"120\",\r\n            \"estimatedRecovery\": \"78\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.005Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.150Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyr000bjguexgulb92f\",\r\n            \"invoiceId\": \"cmv6i3lyy000mn4uelrrqw8aq\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is MEDIUM; original invoice amount is USD 180.00; amount paid is USD 0.00; outstanding amount is USD 180.00.\",\r\n            \"outstandingAmount\": \"180\",\r\n            \"estimatedRecovery\": \"126\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.012Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.154Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyh0009jguev1rv8mu0\",\r\n            \"invoiceId\": \"cmv6i3lzp000sn4uegwsh4nlz\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is MEDIUM; original invoice amount is USD 130.00; amount paid is USD 0.00; outstanding amount is USD 130.00.\",\r\n            \"outstandingAmount\": \"130\",\r\n            \"estimatedRecovery\": \"91\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.001Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.159Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyx000cjgueoaxmnezw\",\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"21 days overdue; customer risk is HIGH; original invoice amount is USD 300.00; amount paid is USD 0.00; outstanding amount is USD 300.00.\",\r\n            \"outstandingAmount\": \"300\",\r\n            \"estimatedRecovery\": \"135\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.017Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.162Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgz7000ejgue32hdejb4\",\r\n            \"invoiceId\": \"cmv6i3lxz000fn4ueh0rg0i02\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"21 days overdue; customer risk is LOW; original invoice amount is USD 180.00; amount paid is USD 0.00; outstanding amount is USD 180.00.\",\r\n            \"outstandingAmount\": \"180\",\r\n            \"estimatedRecovery\": \"117\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.027Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.167Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgz2000djgueij0h5fww\",\r\n            \"invoiceId\": \"cmv6i3lzk000rn4ue0b2e1nss\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"21 days overdue; customer risk is LOW; original invoice amount is USD 70.00; amount paid is USD 0.00; outstanding amount is USD 70.00.\",\r\n            \"outstandingAmount\": \"70\",\r\n            \"estimatedRecovery\": \"45.5\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.022Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.172Z\"\r\n        }\r\n    ]\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "opportunities",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/revenue/businesses/{{business_id}}/opportunities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "revenue",
+                "businesses",
+                "{{business_id}}",
+                "opportunities"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "opportunities",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/revenue/businesses/{{business_id}}/opportunities",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "revenue",
+                    "businesses",
+                    "{{business_id}}",
+                    "opportunities"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n    \"invoiceCount\": 13,\r\n    \"totalOutstanding\": 2280,\r\n    \"estimatedRecovery\": 1343,\r\n    \"opportunities\": [\r\n        {\r\n            \"id\": \"cmv7ftgy50007jguekcpii0g6\",\r\n            \"invoiceId\": \"cmv6i3lyb000hn4ueovagulja\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"29 days overdue; customer risk is MEDIUM; original invoice amount is USD 250.00; amount paid is USD 0.00; outstanding amount is USD 250.00.\",\r\n            \"outstandingAmount\": \"250\",\r\n            \"estimatedRecovery\": \"175\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.989Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.145Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyb000hn4ueovagulja\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lwm0003n4ue5y9jtqwz\",\r\n                \"invoiceNumber\": \"INV-0003\",\r\n                \"amount\": \"250\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-28T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-27T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 2,\r\n                \"createdAt\": \"2026-10-13T09:51:01.091Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.091Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lwm0003n4ue5y9jtqwz\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"David Wilson\",\r\n                    \"email\": \"david@example.com\",\r\n                    \"riskLevel\": \"MEDIUM\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.030Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.030Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyr000bjguexgulb92f\",\r\n            \"invoiceId\": \"cmv6i3lyy000mn4uelrrqw8aq\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is MEDIUM; original invoice amount is USD 180.00; amount paid is USD 0.00; outstanding amount is USD 180.00.\",\r\n            \"outstandingAmount\": \"180\",\r\n            \"estimatedRecovery\": \"126\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.012Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.154Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyy000mn4uelrrqw8aq\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lx60008n4ueitn0xknp\",\r\n                \"invoiceNumber\": \"INV-0008\",\r\n                \"amount\": \"180\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-01T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-01T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 3,\r\n                \"createdAt\": \"2026-10-13T09:51:01.114Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.114Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lx60008n4ueitn0xknp\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Sophia Thomas\",\r\n                    \"email\": \"sophia@example.com\",\r\n                    \"riskLevel\": \"MEDIUM\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.050Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.050Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgz7000ejgue32hdejb4\",\r\n            \"invoiceId\": \"cmv6i3lxz000fn4ueh0rg0i02\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"21 days overdue; customer risk is LOW; original invoice amount is USD 180.00; amount paid is USD 0.00; outstanding amount is USD 180.00.\",\r\n            \"outstandingAmount\": \"180\",\r\n            \"estimatedRecovery\": \"117\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.027Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.167Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lxz000fn4ueh0rg0i02\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lw80001n4uehvcpqftf\",\r\n                \"invoiceNumber\": \"INV-0001\",\r\n                \"amount\": \"180\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-05T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-05T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 0,\r\n                \"createdAt\": \"2026-10-13T09:51:01.079Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.079Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lw80001n4uehvcpqftf\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Sarah Johnson\",\r\n                    \"email\": \"sarah@example.com\",\r\n                    \"riskLevel\": \"LOW\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.017Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.017Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgy10006jguewfmtt0g3\",\r\n            \"invoiceId\": \"cmv6i3lyg000in4uethcvlrmn\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"33 days overdue; customer risk is MEDIUM; original invoice amount is USD 150.00; amount paid is USD 0.00; outstanding amount is USD 150.00.\",\r\n            \"outstandingAmount\": \"150\",\r\n            \"estimatedRecovery\": \"105\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.985Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.137Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyg000in4uethcvlrmn\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lwq0004n4ueln4d3rz0\",\r\n                \"invoiceNumber\": \"INV-0004\",\r\n                \"amount\": \"150\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-24T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-23T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 3,\r\n                \"createdAt\": \"2026-10-13T09:51:01.096Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.096Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lwq0004n4ueln4d3rz0\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Emma Davis\",\r\n                    \"email\": \"emma@example.com\",\r\n                    \"riskLevel\": \"MEDIUM\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.034Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.034Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyh0009jguev1rv8mu0\",\r\n            \"invoiceId\": \"cmv6i3lzp000sn4uegwsh4nlz\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is MEDIUM; original invoice amount is USD 130.00; amount paid is USD 0.00; outstanding amount is USD 130.00.\",\r\n            \"outstandingAmount\": \"130\",\r\n            \"estimatedRecovery\": \"91\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.001Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.159Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lzp000sn4uegwsh4nlz\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lxp000en4ues1k35dxx\",\r\n                \"invoiceNumber\": \"INV-0014\",\r\n                \"amount\": \"130\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-01T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-01T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 1,\r\n                \"createdAt\": \"2026-10-13T09:51:01.141Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.141Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lxp000en4ues1k35dxx\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Mia Garcia\",\r\n                    \"email\": \"mia@example.com\",\r\n                    \"riskLevel\": \"MEDIUM\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.069Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.069Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyl000ajguepfk658ne\",\r\n            \"invoiceId\": \"cmv6i3ly5000gn4ueq1xxld5j\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"25 days overdue; customer risk is LOW; original invoice amount is USD 120.00; amount paid is USD 0.00; outstanding amount is USD 120.00.\",\r\n            \"outstandingAmount\": \"120\",\r\n            \"estimatedRecovery\": \"78\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.005Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.150Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3ly5000gn4ueq1xxld5j\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lwh0002n4uefswcm7hg\",\r\n                \"invoiceNumber\": \"INV-0002\",\r\n                \"amount\": \"120\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-01T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-01T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 1,\r\n                \"createdAt\": \"2026-10-13T09:51:01.085Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.085Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lwh0002n4uefswcm7hg\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Michael Brown\",\r\n                    \"email\": \"michael@example.com\",\r\n                    \"riskLevel\": \"LOW\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.025Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.025Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxj0003jguenlt7m9b4\",\r\n            \"invoiceId\": \"cmv6i3lza000pn4ue3xp7g6ar\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"37 days overdue; customer risk is MEDIUM; original invoice amount is USD 110.00; amount paid is USD 0.00; outstanding amount is USD 110.00.\",\r\n            \"outstandingAmount\": \"110\",\r\n            \"estimatedRecovery\": \"77\",\r\n            \"confidence\": \"0.7\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.967Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.122Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lza000pn4ue3xp7g6ar\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lxh000bn4ueidtn6on4\",\r\n                \"invoiceNumber\": \"INV-0011\",\r\n                \"amount\": \"110\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-20T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-19T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 2,\r\n                \"createdAt\": \"2026-10-13T09:51:01.126Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.126Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lxh000bn4ueidtn6on4\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Noah Harris\",\r\n                    \"email\": \"noah@example.com\",\r\n                    \"riskLevel\": \"MEDIUM\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.061Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.061Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxe0002jguew5cpahn7\",\r\n            \"invoiceId\": \"cmv6i3lyr000kn4uezijxxik6\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"41 days overdue; customer risk is LOW; original invoice amount is USD 100.00; amount paid is USD 0.00; outstanding amount is USD 100.00.\",\r\n            \"outstandingAmount\": \"100\",\r\n            \"estimatedRecovery\": \"65\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.962Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.112Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyr000kn4uezijxxik6\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lx00006n4ue8i8378ql\",\r\n                \"invoiceNumber\": \"INV-0006\",\r\n                \"amount\": \"100\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-16T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-15T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 1,\r\n                \"createdAt\": \"2026-10-13T09:51:01.107Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.107Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lx00006n4ue8i8378ql\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Olivia Taylor\",\r\n                    \"email\": \"olivia@example.com\",\r\n                    \"riskLevel\": \"LOW\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.045Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.045Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxx0005jguefn220556\",\r\n            \"invoiceId\": \"cmv6i3lz7000on4uezzwu8ihf\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"33 days overdue; customer risk is LOW; original invoice amount is USD 90.00; amount paid is USD 0.00; outstanding amount is USD 90.00.\",\r\n            \"outstandingAmount\": \"90\",\r\n            \"estimatedRecovery\": \"58.5\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.981Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.132Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lz7000on4uezzwu8ihf\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lxd000an4uez4exj1ds\",\r\n                \"invoiceNumber\": \"INV-0010\",\r\n                \"amount\": \"90\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-24T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-23T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 1,\r\n                \"createdAt\": \"2026-10-13T09:51:01.123Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.123Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lxd000an4uez4exj1ds\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Ava White\",\r\n                    \"email\": \"ava@example.com\",\r\n                    \"riskLevel\": \"LOW\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.057Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.057Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgz2000djgueij0h5fww\",\r\n            \"invoiceId\": \"cmv6i3lzk000rn4ue0b2e1nss\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"MEDIUM\",\r\n            \"reason\": \"21 days overdue; customer risk is LOW; original invoice amount is USD 70.00; amount paid is USD 0.00; outstanding amount is USD 70.00.\",\r\n            \"outstandingAmount\": \"70\",\r\n            \"estimatedRecovery\": \"45.5\",\r\n            \"confidence\": \"0.65\",\r\n            \"recommendedAction\": \"SEND_PAYMENT_REMINDER\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.022Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.172Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lzk000rn4ue0b2e1nss\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lxm000dn4ue9bezne20\",\r\n                \"invoiceNumber\": \"INV-0013\",\r\n                \"amount\": \"70\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-05T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-05T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 0,\r\n                \"createdAt\": \"2026-10-13T09:51:01.136Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.136Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lxm000dn4ue9bezne20\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Ethan Thompson\",\r\n                    \"email\": \"ethan@example.com\",\r\n                    \"riskLevel\": \"LOW\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.066Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.066Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgxq0004jgue9za6vafi\",\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"37 days overdue; customer risk is HIGH; original invoice amount is USD 400.00; amount paid is USD 0.00; outstanding amount is USD 400.00.\",\r\n            \"outstandingAmount\": \"400\",\r\n            \"estimatedRecovery\": \"180\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.974Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.126Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lww0005n4ue9ffrmirx\",\r\n                \"invoiceNumber\": \"INV-0005\",\r\n                \"amount\": \"400\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-20T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-19T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 0,\r\n                \"createdAt\": \"2026-10-13T09:51:01.101Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.101Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lww0005n4ue9ffrmirx\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"James Miller\",\r\n                    \"email\": \"jlrabdulazeez@example.com\",\r\n                    \"riskLevel\": \"HIGH\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.040Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.040Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyx000cjgueoaxmnezw\",\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"21 days overdue; customer risk is HIGH; original invoice amount is USD 300.00; amount paid is USD 0.00; outstanding amount is USD 300.00.\",\r\n            \"outstandingAmount\": \"300\",\r\n            \"estimatedRecovery\": \"135\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:55.017Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.162Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lyw000ln4ueye34585z\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lx30007n4ue6kqq7fbk\",\r\n                \"invoiceNumber\": \"INV-0007\",\r\n                \"amount\": \"300\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-09-05T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-10-05T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 2,\r\n                \"createdAt\": \"2026-10-13T09:51:01.112Z\",\r\n                \"updatedAt\": \"2026-10-23T12:05:16.332Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lx30007n4ue6kqq7fbk\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"Daniel Anderson\",\r\n                    \"email\": \"daniel@example.com\",\r\n                    \"riskLevel\": \"HIGH\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.047Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.047Z\"\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": \"cmv7ftgyc0008jguebqlgszho\",\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"type\": \"OVERDUE_INVOICE\",\r\n            \"priority\": \"HIGH\",\r\n            \"reason\": \"29 days overdue; customer risk is HIGH; original invoice amount is USD 200.00; amount paid is USD 0.00; outstanding amount is USD 200.00.\",\r\n            \"outstandingAmount\": \"200\",\r\n            \"estimatedRecovery\": \"90\",\r\n            \"confidence\": \"0.45\",\r\n            \"recommendedAction\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"status\": \"OPEN\",\r\n            \"createdAt\": \"2026-10-14T01:34:54.996Z\",\r\n            \"updatedAt\": \"2026-10-26T18:29:17.141Z\",\r\n            \"invoice\": {\r\n                \"id\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"customerId\": \"cmv6i3lxa0009n4uelrxkmf99\",\r\n                \"invoiceNumber\": \"INV-0009\",\r\n                \"amount\": \"200\",\r\n                \"paidAmount\": \"0\",\r\n                \"currencyCode\": \"USD\",\r\n                \"status\": \"OVERDUE\",\r\n                \"issuedAt\": \"2026-08-28T09:51:01.071Z\",\r\n                \"dueAt\": \"2026-09-27T09:51:01.071Z\",\r\n                \"paidAt\": null,\r\n                \"reminderCount\": 0,\r\n                \"createdAt\": \"2026-10-13T09:51:01.119Z\",\r\n                \"updatedAt\": \"2026-10-13T09:51:01.119Z\",\r\n                \"customer\": {\r\n                    \"id\": \"cmv6i3lxa0009n4uelrxkmf99\",\r\n                    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                    \"name\": \"William Jackson\",\r\n                    \"email\": \"william@example.com\",\r\n                    \"riskLevel\": \"HIGH\",\r\n                    \"createdAt\": \"2026-10-13T09:51:01.054Z\",\r\n                    \"updatedAt\": \"2026-10-13T09:51:01.054Z\"\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ai",
+      "item": [
+        {
+          "name": "provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/provider/{{business_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "provider",
+                "{{business_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "provider",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/ai/provider/{{business_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "provider",
+                    "{{business_id}}"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"provider\": \"ollama\",\r\n    \"model\": \"gpt-oss:20b\"\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "revenue-analysis",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/businesses/{{business_id}}/revenue-analysis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "businesses",
+                "{{business_id}}",
+                "revenue-analysis"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "revenue-analysis",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/ai/businesses/{{business_id}}/revenue-analysis",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "businesses",
+                    "{{business_id}}",
+                    "revenue-analysis"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"runId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n    \"provider\": \"ollama\",\r\n    \"model\": \"gpt-oss:20b\",\r\n    \"status\": \"COMPLETED\",\r\n    \"summary\": \"13 overdue invoices with a total outstanding of $2280 and an estimated recovery of $1343.\",\r\n    \"totalOutstanding\": 2280,\r\n    \"estimatedRecovery\": 1343,\r\n    \"decisions\": [\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyr000kn4uezijxxik6\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 41 days overdue but the customer is low risk, so a reminder is appropriate.\",\r\n            \"estimatedRecovery\": 65,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lza000pn4ue3xp7g6ar\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 37 days overdue with medium risk, making a reminder the suitable next step.\",\r\n            \"estimatedRecovery\": 77,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 37 days overdue, high risk, and $400 outstanding, warranting a review before sending a payment request.\",\r\n            \"estimatedRecovery\": 180,\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lz7000on4uezzwu8ihf\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 33 days overdue with low risk, so a reminder is appropriate.\",\r\n            \"estimatedRecovery\": 58.5,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyg000in4uethcvlrmn\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 33 days overdue, medium risk, and $150 outstanding, making a reminder suitable.\",\r\n            \"estimatedRecovery\": 105,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 29 days overdue, high risk, and $200 outstanding, so a review before a payment request is needed.\",\r\n            \"estimatedRecovery\": 90,\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyb000hn4ueovagulja\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 29 days overdue with medium risk, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": 175,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3ly5000gn4ueq1xxld5j\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, low risk, and $120 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": 78,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyy000mn4uelrrqw8aq\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, medium risk, and $180 outstanding, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": 126,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lzp000sn4uegwsh4nlz\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, medium risk, and $130 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": 91,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 21 days overdue, high risk, and $300 outstanding, warranting a review before sending a payment request.\",\r\n            \"estimatedRecovery\": 135,\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lxz000fn4ueh0rg0i02\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 21 days overdue, low risk, and $180 outstanding, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": 117,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        },\r\n        {\r\n            \"invoiceId\": \"cmv6i3lzk000rn4ue0b2e1nss\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 21 days overdue, low risk, and $70 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": 45.5,\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\"\r\n        }\r\n    ]\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "runs",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/businesses/{{business_id}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "businesses",
+                "{{business_id}}",
+                "runs"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "runs",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/ai/businesses/{{business_id}}/runs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "businesses",
+                    "{{business_id}}",
+                    "runs"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "[\r\n    {\r\n        \"id\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 13,\r\n        \"totalOutstanding\": \"2280\",\r\n        \"estimatedRecovery\": \"1343\",\r\n        \"summary\": \"13 overdue invoices with a total outstanding of $2280 and an estimated recovery of $1343.\",\r\n        \"createdAt\": \"2026-10-26T18:04:15.729Z\",\r\n        \"_count\": {\r\n            \"decisions\": 13\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmvl6sih2000nasue0jk10e3e\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 13,\r\n        \"totalOutstanding\": \"2280\",\r\n        \"estimatedRecovery\": \"1393\",\r\n        \"summary\": \"13 overdue invoices with a total outstanding of $2280 and an estimated recovery of $1393.\",\r\n        \"createdAt\": \"2026-10-23T16:31:00.230Z\",\r\n        \"_count\": {\r\n            \"decisions\": 13\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7su35o0000ocuepdgtdttk\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 14,\r\n        \"totalOutstanding\": \"2380\",\r\n        \"estimatedRecovery\": \"1480\",\r\n        \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n        \"createdAt\": \"2026-10-14T07:39:18.781Z\",\r\n        \"_count\": {\r\n            \"decisions\": 14\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 14,\r\n        \"totalOutstanding\": \"2380\",\r\n        \"estimatedRecovery\": \"1480\",\r\n        \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n        \"createdAt\": \"2026-10-14T02:33:51.758Z\",\r\n        \"_count\": {\r\n            \"decisions\": 14\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv6n1q9q0000jguedf3nei8t\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 0,\r\n        \"totalOutstanding\": \"0\",\r\n        \"estimatedRecovery\": \"0\",\r\n        \"summary\": \"No outstanding invoices or recovery opportunities.\",\r\n        \"createdAt\": \"2026-10-13T12:09:31.455Z\",\r\n        \"_count\": {\r\n            \"decisions\": 0\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv6ktlr20000mkuen6oivz6d\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"provider\": \"ollama\",\r\n        \"model\": \"gpt-oss:20b\",\r\n        \"status\": \"COMPLETED\",\r\n        \"invoiceCount\": 0,\r\n        \"totalOutstanding\": \"0\",\r\n        \"estimatedRecovery\": \"0\",\r\n        \"summary\": \"No outstanding invoices or recovery opportunities.\",\r\n        \"createdAt\": \"2026-10-13T11:07:13.119Z\",\r\n        \"_count\": {\r\n            \"decisions\": 0\r\n        }\r\n    }\r\n]"
+            }
+          ]
+        },
+        {
+          "name": "runbyId",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/businesses/{{business_id}}/runs/{{run_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "businesses",
+                "{{business_id}}",
+                "runs",
+                "{{run_id}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "runbyId",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/ai/businesses/{{business_id}}/runs/cmvpkfzzl000dm4ueuhz1ioq2",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "businesses",
+                    "{{business_id}}",
+                    "runs",
+                    "cmvpkfzzl000dm4ueuhz1ioq2"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"id\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n    \"provider\": \"ollama\",\r\n    \"model\": \"gpt-oss:20b\",\r\n    \"status\": \"COMPLETED\",\r\n    \"invoiceCount\": 13,\r\n    \"totalOutstanding\": \"2280\",\r\n    \"estimatedRecovery\": \"1343\",\r\n    \"summary\": \"13 overdue invoices with a total outstanding of $2280 and an estimated recovery of $1343.\",\r\n    \"createdAt\": \"2026-10-26T18:04:15.729Z\",\r\n    \"decisions\": [\r\n        {\r\n            \"id\": \"cmvpkg02d000em4uevuhuwmdr\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyr000kn4uezijxxik6\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 41 days overdue but the customer is low risk, so a reminder is appropriate.\",\r\n            \"estimatedRecovery\": \"65\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000fm4uepjmf9h05\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lza000pn4ue3xp7g6ar\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 37 days overdue with medium risk, making a reminder the suitable next step.\",\r\n            \"estimatedRecovery\": \"77\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000gm4uek3de5kbc\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 37 days overdue, high risk, and $400 outstanding, warranting a review before sending a payment request.\",\r\n            \"estimatedRecovery\": \"180\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000hm4ueglj3qoqm\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lz7000on4uezzwu8ihf\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 33 days overdue with low risk, so a reminder is appropriate.\",\r\n            \"estimatedRecovery\": \"58.5\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000im4uetatw1h2r\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyg000in4uethcvlrmn\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 33 days overdue, medium risk, and $150 outstanding, making a reminder suitable.\",\r\n            \"estimatedRecovery\": \"105\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000jm4ueql8v2gl6\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 29 days overdue, high risk, and $200 outstanding, so a review before a payment request is needed.\",\r\n            \"estimatedRecovery\": \"90\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000km4ueq6p7vm4j\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyb000hn4ueovagulja\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 29 days overdue with medium risk, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": \"175\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000lm4ue01rh29cx\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3ly5000gn4ueq1xxld5j\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, low risk, and $120 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": \"78\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000mm4ue68wkj59g\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyy000mn4uelrrqw8aq\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, medium risk, and $180 outstanding, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": \"126\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02d000nm4ue01ynppfi\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lzp000sn4uegwsh4nlz\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 25 days overdue, medium risk, and $130 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": \"91\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02e000om4ue3enbxyqs\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 21 days overdue, high risk, and $300 outstanding, warranting a review before sending a payment request.\",\r\n            \"estimatedRecovery\": \"135\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02e000pm4ue2hkhiun7\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lxz000fn4ueh0rg0i02\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 21 days overdue, low risk, and $180 outstanding, making a reminder appropriate.\",\r\n            \"estimatedRecovery\": \"117\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        },\r\n        {\r\n            \"id\": \"cmvpkg02e000qm4ue3tsgzvqo\",\r\n            \"aiRunId\": \"cmvpkfzzl000dm4ueuhz1ioq2\",\r\n            \"invoiceId\": \"cmv6i3lzk000rn4ue0b2e1nss\",\r\n            \"decision\": \"SEND_PAYMENT_REMINDER\",\r\n            \"reason\": \"The invoice is 21 days overdue, low risk, and $70 outstanding, so a reminder is suitable.\",\r\n            \"estimatedRecovery\": \"45.5\",\r\n            \"requiresApproval\": false,\r\n            \"policyStatus\": \"ELIGIBLE_NOT_EXECUTED\",\r\n            \"policyReason\": \"The reminder passes the current policy checks, but no message has been sent.\",\r\n            \"createdAt\": \"2026-10-26T18:04:15.829Z\"\r\n        }\r\n    ]\r\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{test_email}}\",\r\n  \"password\": \"{{test_password}}\",\r\n  \"businessName\": \"Autopilot Test Business\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "register",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"jlrabdulazeez@gmail.com\",\r\n  \"password\": \"Strongpassword-123!\",\r\n  \"businessName\": \"Autopilot Test Business\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "json",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{test_email}}\",\r\n  \"password\": \"{{test_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"jlrabdulazeez@gmail.com\",\r\n  \"password\": \"Strongpassword-123!\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"tokenType\": \"Bearer\",\r\n    \"expiresIn\": \"15m\",\r\n    \"user\": {\r\n        \"id\": \"cmv6i98nn0000csueu1nce2fy\",\r\n        \"email\": \"jlrabdulazeez@gmail.com\",\r\n        \"createdAt\": \"2026-10-13T09:55:23.796Z\"\r\n    },\r\n    \"businesses\": [\r\n        {\r\n            \"id\": \"cmv6i98oc0001csuegqitk6y6\",\r\n            \"name\": \"Autopilot Test Business\",\r\n            \"currency\": \"USD\",\r\n            \"role\": \"OWNER\"\r\n        },\r\n        {\r\n            \"id\": \"cmv6i3lvq0000n4ueautkahum\",\r\n            \"name\": \"Acme Digital Services\",\r\n            \"currency\": \"USD\",\r\n            \"role\": \"OWNER\"\r\n        }\r\n    ]\r\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "approval",
+      "item": [
+        {
+          "name": "initialize",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/initialize",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "initialize"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "initialize",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/initialize",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "initialize"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "[\r\n    {\r\n        \"id\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000b8kueslk8w6dr\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000b8kueslk8w6dr\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 24 days overdue, high risk, with a $400 balance; a review and payment request is needed.\",\r\n            \"estimatedRecovery\": \"180\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000g8kue2rjivwbw\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000c8kueyezyi1w3\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000c8kueyezyi1w3\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"Despite only 8 days overdue, the high risk and $300 balance warrant a review and payment request.\",\r\n            \"estimatedRecovery\": \"135\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000h8kue94vmeiox\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000d8kuebcfadjb9\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000d8kuebcfadjb9\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 16 days overdue, high risk, and $200 remains; a review and payment request is required.\",\r\n            \"estimatedRecovery\": \"90\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000i8kue1uhv0j24\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000e8kue3gefkkch\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000e8kue3gefkkch\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lzd000qn4uerjcbmtzg\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 28 days overdue, high risk, with a $100 balance; a review and payment request is necessary.\",\r\n            \"estimatedRecovery\": \"45\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    }\r\n]"
+            }
+          ]
+        },
+        {
+          "name": "pendings",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "pending"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "pendings",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/pending",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "pending"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "[\r\n    {\r\n        \"id\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000b8kueslk8w6dr\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000b8kueslk8w6dr\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 24 days overdue, high risk, with a $400 balance; a review and payment request is needed.\",\r\n            \"estimatedRecovery\": \"180\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000g8kue2rjivwbw\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000c8kueyezyi1w3\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000c8kueyezyi1w3\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lyw000ln4ueye34585z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"Despite only 8 days overdue, the high risk and $300 balance warrant a review and payment request.\",\r\n            \"estimatedRecovery\": \"135\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000h8kue94vmeiox\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000d8kuebcfadjb9\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000d8kuebcfadjb9\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lz3000nn4ueqzyarw2z\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 16 days overdue, high risk, and $200 remains; a review and payment request is required.\",\r\n            \"estimatedRecovery\": \"90\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    },\r\n    {\r\n        \"id\": \"cmv7idhgc000i8kue1uhv0j24\",\r\n        \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n        \"decisionId\": \"cmv7hx9zq000e8kue3gefkkch\",\r\n        \"status\": \"PENDING\",\r\n        \"decidedByUserId\": null,\r\n        \"decidedAt\": null,\r\n        \"rejectionReason\": null,\r\n        \"executionStatus\": \"NOT_STARTED\",\r\n        \"executionAttemptKey\": null,\r\n        \"executionResult\": null,\r\n        \"executedAt\": null,\r\n        \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"updatedAt\": \"2026-10-14T02:46:27.996Z\",\r\n        \"decision\": {\r\n            \"id\": \"cmv7hx9zq000e8kue3gefkkch\",\r\n            \"aiRunId\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n            \"invoiceId\": \"cmv6i3lzd000qn4uerjcbmtzg\",\r\n            \"decision\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n            \"reason\": \"The invoice is 28 days overdue, high risk, with a $100 balance; a review and payment request is necessary.\",\r\n            \"estimatedRecovery\": \"45\",\r\n            \"requiresApproval\": true,\r\n            \"policyStatus\": \"REQUIRES_HUMAN_APPROVAL\",\r\n            \"policyReason\": \"A payment request requires explicit human approval before execution.\",\r\n            \"createdAt\": \"2026-10-14T02:33:51.830Z\",\r\n            \"run\": {\r\n                \"id\": \"cmv7hx9xq00008kuek58f9z7q\",\r\n                \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n                \"provider\": \"ollama\",\r\n                \"model\": \"gpt-oss:20b\",\r\n                \"status\": \"COMPLETED\",\r\n                \"invoiceCount\": 14,\r\n                \"totalOutstanding\": \"2380\",\r\n                \"estimatedRecovery\": \"1480\",\r\n                \"summary\": \"14 overdue invoices with total outstanding $2380 and estimated recovery $1480.\",\r\n                \"createdAt\": \"2026-10-14T02:33:51.758Z\"\r\n            }\r\n        }\r\n    }\r\n]"
+            }
+          ]
+        },
+        {
+          "name": "approve",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "{{approval_id}}",
+                "approve"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "approve",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/approve",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "{{approval_id}}",
+                    "approve"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"id\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n    \"decisionId\": \"cmv7hx9zq000b8kueslk8w6dr\",\r\n    \"status\": \"APPROVED\",\r\n    \"decidedByUserId\": \"cmv6i98nn0000csueu1nce2fy\",\r\n    \"decidedAt\": \"2026-10-14T02:50:29.003Z\",\r\n    \"rejectionReason\": null,\r\n    \"executionStatus\": \"NOT_STARTED\",\r\n    \"executionAttemptKey\": null,\r\n    \"executionResult\": null,\r\n    \"executedAt\": null,\r\n    \"createdAt\": \"2026-10-14T02:46:27.996Z\",\r\n    \"updatedAt\": \"2026-10-14T02:50:29.013Z\"\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "reject",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXY2aTk4bm4wMDAwY3N1ZXUxbmNlMmZ5IiwiZW1haWwiOiJqbHJhYmR1bGF6ZWV6QGdtYWlsLmNvbSIsImlhdCI6MTc5MTk0NTkxNCwiZXhwIjoxNzkxOTQ2ODE0fQ._v9x6meqprCVlBfA7989vV5O1n2fz3cpQlPaNq-9T-o",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/approvals/businesses/{{business_id}}/{{approval_id}}/reject",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "{{approval_id}}",
+                "reject"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "execution-check",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/execution-check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "{{approval_id}}",
+                "execution-check"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "execution-check",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/execution-check",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "{{approval_id}}",
+                    "execution-check"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"approvalId\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n    \"approvalStatus\": \"APPROVED\",\r\n    \"executionStatus\": \"NOT_STARTED\",\r\n    \"businessId\": \"cmv6i3lvq0000n4ueautkahum\",\r\n    \"invoice\": {\r\n        \"id\": \"cmv6i3lyl000jn4ueytxx1q8i\",\r\n        \"invoiceNumber\": \"INV-0005\",\r\n        \"amount\": \"400\",\r\n        \"currencyCode\": \"USD\",\r\n        \"dueAt\": \"2026-09-19T09:51:01.071Z\",\r\n        \"status\": \"OVERDUE\"\r\n    },\r\n    \"action\": \"REVIEW_AND_SEND_PAYMENT_REQUEST\",\r\n    \"eligibleForExecution\": true,\r\n    \"executed\": false,\r\n    \"nextStep\": \"An action-specific executor and idempotency protection are still required.\"\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "execute",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/execute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "{{approval_id}}",
+                "execute"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "execute",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/execute",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "{{approval_id}}",
+                    "execute"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"approvalId\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n    \"status\": \"APPROVED\",\r\n    \"executionStatus\": \"SUCCEEDED\",\r\n    \"paypalInvoiceId\": \"INV2-2UG4-9WWH-PFGF-CZ8G\",\r\n    \"message\": \"PayPal accepted the invoice send request.\"\r\n}"
+            }
+          ]
+        },
+        {
+          "name": "reconcile",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}",
+                "type": "text"
+              },
+              {
+                "key": "Referer",
+                "value": "{{frontend_url}}/login",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/reconcile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approvals",
+                "businesses",
+                "{{business_id}}",
+                "{{approval_id}}",
+                "reconcile"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "reconcile",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Origin",
+                    "value": "{{frontend_url}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Referer",
+                    "value": "{{frontend_url}}/login",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Requested-With",
+                    "value": "XMLHttpRequest",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/approvals/businesses/{{business_id}}/{{approval_id}}/reconcile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "approvals",
+                    "businesses",
+                    "{{business_id}}",
+                    "{{approval_id}}",
+                    "reconcile"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"approvalId\": \"cmv7idhgc000f8kue9n1wabo3\",\r\n    \"executionStatus\": \"SUCCEEDED\",\r\n    \"paypalInvoiceId\": \"INV2-2UG4-9WWH-PFGF-CZ8G\",\r\n    \"paypalStatus\": \"SENT\",\r\n    \"reconciled\": true,\r\n    \"note\": \"PayPal confirms the invoice is no longer a draft. This does not itself update the local invoice payment status.\"\r\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"amount\": 10,\r\n  \"currencyCode\": \"USD\",\r\n  \"description\": \"PayPal Autopilot Test Purchase\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/paypal/orders",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "paypal",
+            "orders"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Order",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"amount\": 10,\r\n  \"currencyCode\": \"USD\",\r\n  \"description\": \"PayPal Autopilot Test Purchase\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/paypal/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "paypal",
+                "orders"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"orderId\": \"8NW42946VK3622724\",\r\n    \"status\": \"CREATED\",\r\n    \"approvalUrl\": \"https://www.sandbox.paypal.com/checkoutnow?token=8NW42946VK3622724\",\r\n    \"paypal\": {\r\n        \"id\": \"8NW42946VK3622724\",\r\n        \"intent\": \"CAPTURE\",\r\n        \"status\": \"CREATED\",\r\n        \"purchase_units\": [\r\n            {\r\n                \"reference_id\": \"default\",\r\n                \"amount\": {\r\n                    \"currency_code\": \"USD\",\r\n                    \"value\": \"10.00\"\r\n                },\r\n                \"payee\": {\r\n                    \"email_address\": \"sb-xfyet53113364@business.example.com\",\r\n                    \"merchant_id\": \"57Z2S4EL5QH52\"\r\n                },\r\n                \"description\": \"PayPal Autopilot Test Purchase\"\r\n            }\r\n        ],\r\n        \"create_time\": \"2026-10-26T18:55:36Z\",\r\n        \"links\": [\r\n            {\r\n                \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/8NW42946VK3622724\",\r\n                \"rel\": \"self\",\r\n                \"method\": \"GET\"\r\n            },\r\n            {\r\n                \"href\": \"https://www.sandbox.paypal.com/checkoutnow?token=8NW42946VK3622724\",\r\n                \"rel\": \"approve\",\r\n                \"method\": \"GET\"\r\n            },\r\n            {\r\n                \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/8NW42946VK3622724\",\r\n                \"rel\": \"update\",\r\n                \"method\": \"PATCH\"\r\n            },\r\n            {\r\n                \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/8NW42946VK3622724/capture\",\r\n                \"rel\": \"capture\",\r\n                \"method\": \"POST\"\r\n            }\r\n        ]\r\n    }\r\n}"
+        }
+      ]
+    },
+    {
+      "name": "Capture",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/paypal/orders/{{order_id}}/capture",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "paypal",
+            "orders",
+            "{{order_id}}",
+            "capture"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Capture",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/paypal/orders/9J869207JS9677445/capture",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "paypal",
+                "orders",
+                "9J869207JS9677445",
+                "capture"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"orderId\": \"9J869207JS9677445\",\r\n    \"status\": \"COMPLETED\",\r\n    \"captureId\": \"12873007Y2928560V\",\r\n    \"captureStatus\": \"COMPLETED\",\r\n    \"amount\": {\r\n        \"currency_code\": \"USD\",\r\n        \"value\": \"10.00\"\r\n    },\r\n    \"paypal\": {\r\n        \"id\": \"9J869207JS9677445\",\r\n        \"status\": \"COMPLETED\",\r\n        \"payment_source\": {\r\n            \"paypal\": {\r\n                \"email_address\": \"sb-f47sdk53197609@personal.example.com\",\r\n                \"account_id\": \"DEQNSWWG6BELU\",\r\n                \"account_status\": \"VERIFIED\",\r\n                \"name\": {\r\n                    \"given_name\": \"John\",\r\n                    \"surname\": \"Doe\"\r\n                },\r\n                \"address\": {\r\n                    \"country_code\": \"US\"\r\n                }\r\n            }\r\n        },\r\n        \"purchase_units\": [\r\n            {\r\n                \"reference_id\": \"default\",\r\n                \"shipping\": {\r\n                    \"name\": {\r\n                        \"full_name\": \"John Doe\"\r\n                    },\r\n                    \"address\": {\r\n                        \"address_line_1\": \"2211 N First St\",\r\n                        \"admin_area_2\": \"San Jose\",\r\n                        \"admin_area_1\": \"CA\",\r\n                        \"postal_code\": \"95131\",\r\n                        \"country_code\": \"US\"\r\n                    }\r\n                },\r\n                \"payments\": {\r\n                    \"captures\": [\r\n                        {\r\n                            \"id\": \"12873007Y2928560V\",\r\n                            \"status\": \"COMPLETED\",\r\n                            \"amount\": {\r\n                                \"currency_code\": \"USD\",\r\n                                \"value\": \"10.00\"\r\n                            },\r\n                            \"final_capture\": true,\r\n                            \"seller_protection\": {\r\n                                \"status\": \"ELIGIBLE\",\r\n                                \"dispute_categories\": [\r\n                                    \"ITEM_NOT_RECEIVED\",\r\n                                    \"UNAUTHORIZED_TRANSACTION\"\r\n                                ]\r\n                            },\r\n                            \"seller_receivable_breakdown\": {\r\n                                \"gross_amount\": {\r\n                                    \"currency_code\": \"USD\",\r\n                                    \"value\": \"10.00\"\r\n                                },\r\n                                \"paypal_fee\": {\r\n                                    \"currency_code\": \"USD\",\r\n                                    \"value\": \"0.84\"\r\n                                },\r\n                                \"net_amount\": {\r\n                                    \"currency_code\": \"USD\",\r\n                                    \"value\": \"9.16\"\r\n                                }\r\n                            },\r\n                            \"links\": [\r\n                                {\r\n                                    \"href\": \"https://api.sandbox.paypal.com/v2/payments/captures/12873007Y2928560V\",\r\n                                    \"rel\": \"self\",\r\n                                    \"method\": \"GET\"\r\n                                },\r\n                                {\r\n                                    \"href\": \"https://api.sandbox.paypal.com/v2/payments/captures/12873007Y2928560V/refund\",\r\n                                    \"rel\": \"refund\",\r\n                                    \"method\": \"POST\"\r\n                                },\r\n                                {\r\n                                    \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/9J869207JS9677445\",\r\n                                    \"rel\": \"up\",\r\n                                    \"method\": \"GET\"\r\n                                }\r\n                            ],\r\n                            \"create_time\": \"2026-10-22T17:04:05Z\",\r\n                            \"update_time\": \"2026-10-22T17:04:05Z\"\r\n                        }\r\n                    ]\r\n                }\r\n            }\r\n        ],\r\n        \"payer\": {\r\n            \"name\": {\r\n                \"given_name\": \"John\",\r\n                \"surname\": \"Doe\"\r\n            },\r\n            \"email_address\": \"sb-f47sdk53197609@personal.example.com\",\r\n            \"payer_id\": \"DEQNSWWG6BELU\",\r\n            \"address\": {\r\n                \"country_code\": \"US\"\r\n            }\r\n        },\r\n        \"links\": [\r\n            {\r\n                \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/9J869207JS9677445\",\r\n                \"rel\": \"self\",\r\n                \"method\": \"GET\"\r\n            }\r\n        ]\r\n    }\r\n}"
+        }
+      ]
+    },
+    {
+      "name": "orderId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/paypal/orders/{{order_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "paypal",
+            "orders",
+            "{{order_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "orderId",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/paypal/orders/32B44854VC842512S",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "paypal",
+                "orders",
+                "32B44854VC842512S"
+              ]
+            }
+          },
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"id\": \"32B44854VC842512S\",\r\n    \"intent\": \"CAPTURE\",\r\n    \"status\": \"COMPLETED\",\r\n    \"payment_source\": {\r\n        \"paypal\": {\r\n            \"email_address\": \"sb-f47sdk53197609@personal.example.com\",\r\n            \"account_id\": \"DEQNSWWG6BELU\",\r\n            \"account_status\": \"VERIFIED\",\r\n            \"name\": {\r\n                \"given_name\": \"John\",\r\n                \"surname\": \"Doe\"\r\n            },\r\n            \"address\": {\r\n                \"country_code\": \"US\"\r\n            }\r\n        }\r\n    },\r\n    \"purchase_units\": [\r\n        {\r\n            \"reference_id\": \"default\",\r\n            \"amount\": {\r\n                \"currency_code\": \"USD\",\r\n                \"value\": \"10.00\",\r\n                \"breakdown\": {}\r\n            },\r\n            \"payee\": {\r\n                \"email_address\": \"sb-xfyet53113364@business.example.com\",\r\n                \"merchant_id\": \"57Z2S4EL5QH52\"\r\n            },\r\n            \"description\": \"PayPal Autopilot Test Purchase\",\r\n            \"soft_descriptor\": \"PAYPAL *TEST STORE\",\r\n            \"shipping\": {\r\n                \"name\": {\r\n                    \"full_name\": \"John Doe\"\r\n                },\r\n                \"address\": {\r\n                    \"address_line_1\": \"2211 N First St\",\r\n                    \"admin_area_2\": \"San Jose\",\r\n                    \"admin_area_1\": \"CA\",\r\n                    \"postal_code\": \"95131\",\r\n                    \"country_code\": \"US\"\r\n                }\r\n            },\r\n            \"payments\": {\r\n                \"captures\": [\r\n                    {\r\n                        \"id\": \"9K2872369F281535B\",\r\n                        \"status\": \"COMPLETED\",\r\n                        \"amount\": {\r\n                            \"currency_code\": \"USD\",\r\n                            \"value\": \"10.00\"\r\n                        },\r\n                        \"final_capture\": true,\r\n                        \"seller_protection\": {\r\n                            \"status\": \"ELIGIBLE\",\r\n                            \"dispute_categories\": [\r\n                                \"ITEM_NOT_RECEIVED\",\r\n                                \"UNAUTHORIZED_TRANSACTION\"\r\n                            ]\r\n                        },\r\n                        \"seller_receivable_breakdown\": {\r\n                            \"gross_amount\": {\r\n                                \"currency_code\": \"USD\",\r\n                                \"value\": \"10.00\"\r\n                            },\r\n                            \"paypal_fee\": {\r\n                                \"currency_code\": \"USD\",\r\n                                \"value\": \"0.84\"\r\n                            },\r\n                            \"net_amount\": {\r\n                                \"currency_code\": \"USD\",\r\n                                \"value\": \"9.16\"\r\n                            }\r\n                        },\r\n                        \"links\": [\r\n                            {\r\n                                \"href\": \"https://api.sandbox.paypal.com/v2/payments/captures/9K2872369F281535B\",\r\n                                \"rel\": \"self\",\r\n                                \"method\": \"GET\"\r\n                            },\r\n                            {\r\n                                \"href\": \"https://api.sandbox.paypal.com/v2/payments/captures/9K2872369F281535B/refund\",\r\n                                \"rel\": \"refund\",\r\n                                \"method\": \"POST\"\r\n                            },\r\n                            {\r\n                                \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/32B44854VC842512S\",\r\n                                \"rel\": \"up\",\r\n                                \"method\": \"GET\"\r\n                            }\r\n                        ],\r\n                        \"create_time\": \"2026-10-22T16:28:30Z\",\r\n                        \"update_time\": \"2026-10-22T16:28:30Z\"\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    ],\r\n    \"payer\": {\r\n        \"name\": {\r\n            \"given_name\": \"John\",\r\n            \"surname\": \"Doe\"\r\n        },\r\n        \"email_address\": \"sb-f47sdk53197609@personal.example.com\",\r\n        \"payer_id\": \"DEQNSWWG6BELU\",\r\n        \"address\": {\r\n            \"country_code\": \"US\"\r\n        }\r\n    },\r\n    \"create_time\": \"2026-10-22T16:28:30Z\",\r\n    \"update_time\": \"2026-10-22T16:28:30Z\",\r\n    \"links\": [\r\n        {\r\n            \"href\": \"https://api.sandbox.paypal.com/v2/checkout/orders/32B44854VC842512S\",\r\n            \"rel\": \"self\",\r\n            \"method\": \"GET\"\r\n        }\r\n    ]\r\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_08c6",
+      "value": "undefined"
+    },
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "frontend_url",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "approval_id",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "test_email",
+      "value": ""
+    },
+    {
+      "key": "run_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    }
+  ]
+}
